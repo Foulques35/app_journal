@@ -1,5 +1,5 @@
-🏗️ Journal de Chantier - PWA iOS Offline
-Une application web mobile (PWA) ultra-légère pour le suivi de chantier. Conçue pour fonctionner sans connexion internet, sans serveur, et sans abonnement. Elle permet de créer des fiches de suivi, d'ajouter des photos et de générer des rapports PDF instantanément depuis un iPhone.
+🏗️ Journal de Chantier - PWA
+Une application web mobile (PWA) ultra-légère pour le suivi de chantier. Conçue pour fonctionner sans connexion internet, sans serveur, et sans abonnement. Elle permet de créer des fiches de suivi, d'ajouter des photos et de générer des rapports PDF instantanément.
 
 ✨ Fonctionnalités
 100% Hors Ligne : Fonctionne parfaitement en mode avion grâce aux Service Workers.
