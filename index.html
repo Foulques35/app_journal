@@ -31,7 +31,7 @@
         * { box-sizing: border-box; }
         input, textarea, select { -webkit-user-select: text; user-select: text; }
 
-        /* --- SVG ICONS (TAILLES RÉDUITES) --- */
+        /* --- SVG ICONS --- */
         .icon { width: 16px; height: 16px; fill: currentColor; display: inline-block; vertical-align: middle; }
         .icon-lg { width: 20px; height: 20px; }
         .icon-xl { width: 24px; height: 24px; }
@@ -47,28 +47,18 @@
         .view-modal.active { transform: translateY(0); }
         .modal-handle { width: 36px; height: 4px; background: #C5C5C7; border-radius: 3px; margin: 6px auto 0 auto; }
 
-        /* --- HEADER (COMPACT) --- */
+        /* --- HEADER --- */
         .nav-bar { height: 44px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; background: rgba(242, 242, 247, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 50; }
         .nav-title { font-size: 16px; font-weight: 600; text-align: center; flex-grow: 1; }
-
         .nav-btn { color: var(--primary); font-size: 15px; background: none; border: none; cursor: pointer; padding: 8px 4px; display: flex; align-items: center; gap: 4px; }
         .nav-btn.danger { color: var(--danger); }
-
-        .nav-btn.action-primary {
-            background: rgba(0, 122, 255, 0.1);
-            color: var(--primary);
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            padding: 0;
-            transition: background 0.2s;
-        }
+        .nav-btn.action-primary { background: rgba(0, 122, 255, 0.1); color: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s; }
         .nav-btn.action-primary:active { background: rgba(0, 122, 255, 0.2); }
 
         /* --- CONTENT --- */
         .content { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; -webkit-overflow-scrolling: touch; padding-bottom: 90px; }
 
-        /* --- UI ELEMENTS (SEARCH COMPACT) --- */
+        /* --- UI ELEMENTS --- */
         .search-container { background: #e3e3e8; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; }
         .search-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; background: rgba(255,255,255,0.7); padding: 6px 8px; border-radius: 8px; }
         .search-bar input { border: none; background: transparent; font-size: 15px; width: 100%; outline: none; padding: 0; }
@@ -902,7 +892,7 @@
                 if(e.temp) metaText += ` ${e.temp}°C`;
                 doc.text(metaText, 12, y+10);
 
-                y+=16; doc.setTextColor(0); doc.setFontSize(10);
+                y+=16; doc.setTextColor(0); doc.setFontSize(10); doc.setFont("helvetica", "bold");
                 const lines = doc.splitTextToSize(e.description, 180);
                 doc.text(lines, 12, y); y += (lines.length*5)+5;
 
