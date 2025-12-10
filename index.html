@@ -599,7 +599,7 @@
         }
 
         // --- IMAGES ---
-        function resizeImage(file, max=800) {
+        function resizeImage(file, max=600) {
             return new Promise(r => {
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -609,7 +609,7 @@
                         let w=img.width, h=img.height;
                         if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
                         c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
-                        r(c.toDataURL('image/jpeg', 0.6));
+                        r(c.toDataURL('image/jpeg', 0.4));
                     }
                     img.src = e.target.result;
                 }
