@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Journal">
     <meta name="theme-color" content="#f2f2f7">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
     <title>Journal Chantier</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -297,6 +297,10 @@
                     <input type="text" id="pdfTitleInput" onchange="savePdfSettings()" style="text-align:right; border:none; color:var(--primary); outline:none; font-size:17px" placeholder="Rapport...">
                 </div>
                 <div class="setting-row">
+                    <span>Couleur Thème</span>
+                    <input type="color" id="pdfColorInput" onchange="savePdfSettings()" style="border:none; background:none; height:30px; width:50px; padding:0; -webkit-appearance:none;">
+                </div>
+                <div class="setting-row">
                     <span>Logo</span>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div id="logoPreview" style="width:40px; height:40px; background:#eee; border-radius:6px; overflow:hidden"></div>
@@ -326,7 +330,7 @@
                     </div>
                 </div>
             </div>
-            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 16.0 (PDF Correctif)</div>
+            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 17.0 (Color Picker)</div>
             <div style="height:100px"></div>
         </div>
     </div>
@@ -382,6 +386,7 @@
             sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
             categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
             pdfTitle: "Rapport de Chantier",
+            pdfColor: "#007AFF", // Default Apple Blue
             logo: null
         };
         let appData = { settings: {...defaultSettings}, entries: [] };
@@ -392,7 +397,7 @@
         let editingUpdateId = null;
 
         function initApp() {
-            const raw = localStorage.getItem('journal_v14'); // V14 Key compatible
+            const raw = localStorage.getItem('journal_v14'); // Keep V14 key for now
             if (raw) {
                 appData = JSON.parse(raw);
                 appData.settings = {...defaultSettings, ...appData.settings};
@@ -400,6 +405,7 @@
             updateDropdowns(); renderList();
 
             document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
+            document.getElementById('pdfColorInput').value = appData.settings.pdfColor || "#007AFF";
             renderLogoPreview();
             renderChips('siteList', appData.settings.sites, 'sites');
             renderChips('catList', appData.settings.categories, 'categories');
@@ -763,7 +769,11 @@
             }
         }
 
-        function savePdfSettings() { appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value; saveToStorage(); }
+        function savePdfSettings() {
+            appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value;
+            appData.settings.pdfColor = document.getElementById('pdfColorInput').value;
+            saveToStorage();
+        }
         async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); saveToStorage(); renderLogoPreview(); } }
         function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; saveToStorage(); renderLogoPreview(); } }
         function renderLogoPreview() {
@@ -787,7 +797,11 @@
             const doc = new window.jspdf.jsPDF();
             const title = appData.settings.pdfTitle || "Rapport";
 
-            doc.setFillColor(0, 122, 255); doc.rect(0,0,210,35,'F');
+            // USE CUSTOM COLOR
+            const colorHex = appData.settings.pdfColor || "#007AFF";
+            doc.setFillColor(colorHex);
+            doc.rect(0,0,210,35,'F');
+
             doc.setTextColor(255); doc.setFontSize(18);
             if(appData.settings.logo) { try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){} doc.text(title,40,22); }
             else { doc.text(title,10,22); }
