@@ -4,532 +4,749 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-    <!-- CONFIGURATION IPHONE / PWA -->
+    <!-- PWA / iOS Config -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Journal Chantier">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Journal">
+    <meta name="theme-color" content="#f2f2f7">
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
-    <title>Journal de Chantier</title>
+    <title>Journal Chantier</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --primary: #2563eb;
-            --bg-sidebar: #f8fafc;
-            --bg-main: #ffffff;
-            --border: #e2e8f0;
-            --text: #334155;
-            --card-active: #eff6ff;
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
+            --primary: #007AFF; /* Apple Blue */
+            --bg-app: #F2F2F7;
+            --bg-card: #FFFFFF;
+            --text-main: #000000;
+            --text-sec: #8E8E93;
+            --border: #C6C6C8;
+            --danger: #FF3B30;
+            --success: #34C759;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Base Reset & Font */
+        /* --- BASE --- */
         body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text);
-            height: 100vh;
-            display: flex;
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            height: 100dvh; /* Dynamic viewport height */
+            width: 100vw;
             overflow: hidden;
-            background: var(--bg-main);
-            /* Gestion de l'encoche iPhone */
-            padding-top: var(--safe-area-top);
-            padding-bottom: var(--safe-area-bottom);
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        /* --- LAYOUT DESKTOP --- */
-        .sidebar { width: 380px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 10; }
-        .main-content { flex-grow: 1; background: var(--bg-main); padding: 20px 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; position: relative; }
-
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 768px) {
-            body { position: relative; display: block; height: 100dvh; /* Dynamic viewport height */ }
-
-            .sidebar {
-                width: 100%; height: 100%; position: absolute; top:0; left:0;
-                border-right: none; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                transform: translateX(0); z-index: 10;
-                padding-bottom: 80px; /* Espace pour scrolling */
-            }
-
-            .main-content {
-                width: 100%; height: 100%; position: absolute; top:0; left:0;
-                padding: 15px; padding-bottom: 100px; /* Espace bas */
-                transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-                background: white; z-index: 20;
-            }
-
-            /* Animation Slide */
-            body.view-form .sidebar { transform: translateX(-25%); opacity: 0.5; }
-            body.view-form .main-content { transform: translateX(0); }
-
-            .btn-mobile-back { display: block !important; }
-            .header-edit { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; padding-top: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; }
-
-            .entry-card { padding: 16px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
-            input, select, textarea { font-size: 16px !important; border-radius: 10px !important; padding: 12px !important; }
-            .row { grid-template-columns: 1fr; gap: 12px; }
-            .modal-box { width: 100%; height: 100%; max-height: 100%; border-radius: 0; padding-top: 50px; }
+            -webkit-user-select: none; user-select: none; /* App feel */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- COMPONENTS --- */
-        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border); background: white; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .app-title { font-weight: 800; color: var(--primary); font-size: 1.2rem; letter-spacing: -0.5px; }
-        .btn-settings { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.4rem; padding: 5px; }
+        * { box-sizing: border-box; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
 
-        .search-box { position: relative; margin-bottom: 10px; }
-        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-        .search-box input { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid var(--border); border-radius: 10px; background: #f1f5f9; border:none; outline:none; }
+        /* --- NAVIGATION ENTRE VUES --- */
+        .view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            background: var(--bg-app);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 10;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(60px + var(--safe-bottom)); /* Espace pour TabBar */
+        }
 
-        .filter-row select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: white; -webkit-appearance: none; }
-        .date-range-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; background: white; border: 1px solid var(--border); padding: 8px; border-radius: 10px; }
-        .date-range-row input { flex: 1; border: none; padding: 5px; font-size: 0.9rem; background: transparent; }
+        /* États des vues pour l'animation */
+        .view.hidden-right { transform: translateX(100%); pointer-events: none; z-index: 20; }
+        .view.active { transform: translateX(0); }
+        .view.hidden-left { transform: translateX(-30%); opacity: 0.8; z-index: 5; }
 
-        .action-row { display: flex; gap: 8px; margin-top: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .action-row::-webkit-scrollbar { display: none; }
+        /* Le Settings modal glisse du bas */
+        .view-modal {
+            z-index: 50;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            padding-bottom: var(--safe-bottom);
+            background: var(--bg-app);
+        }
+        .view-modal.active { transform: translateY(0); }
 
-        .btn-mini { font-size: 0.85rem; padding: 10px 16px; border: 1px solid #e2e8f0; background: white; cursor: pointer; border-radius: 25px; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; color: #334155; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .btn-mini:active { background: #f1f5f9; transform: scale(0.98); }
+        /* --- HEADER --- */
+        .nav-bar {
+            height: 50px; flex-shrink: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px;
+            background: rgba(242, 242, 247, 0.85); /* Translucide */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-title { font-size: 17px; font-weight: 600; text-align: center; flex-grow: 1; }
+        .nav-btn {
+            color: var(--primary); font-size: 17px; background: none; border: none; cursor: pointer; padding: 10px 5px;
+        }
+        .nav-btn.danger { color: var(--danger); }
+        .nav-btn.icon { font-size: 20px; width: 40px; }
 
-        .entry-list { flex-grow: 1; overflow-y: auto; padding: 10px; -webkit-overflow-scrolling: touch; }
-        .entry-card.active { border-color: var(--primary); background: #f0f7ff; }
+        /* --- CONTENT SCROLLABLE --- */
+        .content {
+            flex-grow: 1; overflow-y: auto; overflow-x: hidden;
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
 
-        .card-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; }
-        .card-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; color: #0f172a; }
-        .card-preview { font-size: 0.9rem; color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+        /* --- TAB BAR (BAS) --- */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: calc(55px + var(--safe-bottom));
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0,0,0,0.1);
+            display: flex; justify-content: space-around; align-items: flex-start;
+            padding-top: 8px; z-index: 100;
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-sec); text-decoration: none; font-size: 10px; font-weight: 500;
+            background: none; border: none; cursor: pointer; width: 60px;
+        }
+        .tab-item i { font-size: 22px; margin-bottom: 4px; }
+        .tab-item.active { color: var(--primary); }
 
-        /* --- FORM --- */
-        .form-container { width: 100%; max-width: 800px; padding-bottom: 40px; }
-        .header-edit { display: flex; align-items: center; gap: 10px; }
-        .btn-mobile-back { display: none; background: none; border: none; font-size: 1.5rem; color: var(--primary); padding: 0 15px 0 5px; cursor: pointer; }
-        h2 { margin: 0; color: var(--primary); font-size: 1.3rem; flex-grow: 1; }
+        /* Bouton central plus grand */
+        .tab-item.big-add {
+            transform: translateY(-20px);
+        }
+        .tab-item.big-add div {
+            width: 50px; height: 50px;
+            background: var(--primary); color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+        .tab-item.big-add i { font-size: 24px; margin: 0; }
 
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: #475569; }
-        input[type="text"], input[type="datetime-local"], select, textarea { width: 100%; border: 1px solid #cbd5e1; background: #fff; appearance: none; }
-        textarea { resize: vertical; min-height: 100px; }
+        /* --- LISTE --- */
+        .search-bar {
+            margin-bottom: 15px;
+            background: #e3e3e8; border-radius: 10px;
+            padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .search-bar input {
+            border: none; background: transparent; font-size: 16px; width: 100%; outline: none;
+        }
 
-        .photo-section { margin-top: 20px; margin-bottom: 25px; border: 2px dashed #cbd5e1; padding: 20px; border-radius: 16px; background: #f8fafc; text-align: center; }
-        .photo-gallery { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; justify-content: center; }
-        .photo-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-del { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.9); color: #ef4444; border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .journal-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+            active-bg: #f2f2f2;
+        }
+        .journal-card:active { background: #f9f9f9; transform: scale(0.99); transition: 0.1s; }
 
-        .timeline-section { margin-top: 35px; border-top: 4px solid #f1f5f9; padding-top: 20px; }
-        .timeline-input-box { background: white; padding: 15px; border-radius: 16px; margin-bottom: 25px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .timeline-item { position: relative; margin-bottom: 25px; padding-left: 25px; border-left: 2px solid #e2e8f0; margin-left: 5px; }
-        .timeline-item::before { content: ''; position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px #e2e8f0; }
+        .j-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--text-sec); }
+        .j-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .j-desc { font-size: 15px; color: #3A3A3C; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .j-footer { margin-top: 10px; display: flex; gap: 10px; font-size: 12px; color: var(--text-sec); }
+        .badge { background: #E5E5EA; padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
+        .badge.blue { color: var(--primary); background: rgba(0,122,255,0.1); }
 
-        .btn { padding: 16px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
-        .btn:active { transform: scale(0.97); }
-        .btn-primary { background: var(--primary); color: white; width: 100%; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
-        .btn-success { background: #10b981; color: white; width: 100%; margin-top: 10px; }
-        .btn-danger { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
-        .btn-file { background: white; border: 1px solid #cbd5e1; color: #334155; display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* --- FORMULAIRE --- */
+        .ios-list {
+            background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px;
+        }
+        .ios-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #E5E5EA;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .ios-item:last-child { border-bottom: none; }
+        .ios-label { font-size: 13px; font-weight: 500; color: var(--text-sec); text-transform: uppercase; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: flex-end; z-index: 1000; backdrop-filter: blur(4px); }
-        @media (min-width: 769px) { .modal-overlay { align-items: center; } }
+        .ios-input {
+            font-size: 17px; border: none; width: 100%; outline: none; background: transparent; padding: 5px 0; font-family: inherit;
+        }
+        textarea.ios-input { min-height: 80px; resize: none; }
 
-        .hidden { display: none !important; }
+        /* Photos */
+        .h-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .photo-thumb {
+            width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; overflow: hidden; position: relative;
+            background: #eee;
+        }
+        .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-del-photo {
+            position: absolute; top: 2px; right: 2px; width: 22px; height: 22px;
+            background: rgba(0,0,0,0.6); color: white; border-radius: 50%;
+            border: none; display: flex; align-items: center; justify-content: center;
+        }
+        .add-photo-btn {
+            width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px;
+            border: 2px dashed #C6C6C8; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: var(--primary);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+        }
+
+        /* Timeline */
+        .timeline { margin-left: 20px; border-left: 2px solid #E5E5EA; padding-left: 20px; }
+        .t-item { position: relative; padding-bottom: 20px; }
+        .t-item::before {
+            content:''; position: absolute; left: -26px; top: 2px;
+            width: 10px; height: 10px; background: var(--primary); border-radius: 50%;
+            border: 2px solid white; box-shadow: 0 0 0 1px #E5E5EA;
+        }
+        .t-date { font-size: 12px; color: var(--text-sec); margin-bottom: 4px; }
+        .t-text { font-size: 15px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #E5E5EA; }
+
+        /* --- SETTINGS --- */
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; background: white; border-bottom: 1px solid #E5E5EA;
+        }
+        .setting-group { margin-bottom: 25px; border-radius: 12px; overflow: hidden; }
+        .setting-header {
+            padding: 0 0 8px 16px; font-size: 13px; color: var(--text-sec); text-transform: uppercase;
+        }
+
+        /* --- EXPORT MENU --- */
+        .dropdown-menu {
+            position: absolute; top: 55px; right: 15px; width: 200px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 200; display: none; transform-origin: top right;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .dropdown-menu.show { display: block; animation: popIn 0.2s; }
+        .menu-item {
+            padding: 12px 16px; border-bottom: 1px solid #E5E5EA;
+            display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--text-main);
+            background: none; border: none; width: 100%; text-align: left;
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:active { background: #f2f2f2; }
+
+        @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<!-- MODAL SETTINGS -->
-<div id="settingsModal" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-header">
-            <div class="modal-title"><i class="fas fa-cog"></i> Réglages</div>
-            <button class="close-modal" onclick="toggleSettings()">&times;</button>
+    <!-- === VIEW 1: LISTE (ACCUEIL) === -->
+    <div id="viewList" class="view active">
+        <div class="nav-bar">
+            <div style="width:40px"></div>
+            <div class="nav-title">Journal</div>
+            <button class="nav-btn icon" onclick="toggleExportMenu()"><i class="fas fa-share-square"></i></button>
         </div>
 
-        <div class="setting-group">
-            <h4>📄 PDF & Logo</h4>
-            <div class="pdf-setting-container">
-                <input type="text" id="pdfTitleInput" placeholder="Titre (ex: Rapport)" onchange="savePdfSettings()" style="margin-bottom:10px;">
-                <div style="display:flex; gap:15px; align-items:center;">
-                    <div id="logoPreview" style="width:50px; height:50px; background:#f1f5f9; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;"></div>
-                    <label class="btn-mini" style="margin:0;"><i class="fas fa-upload"></i> Logo <input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></label>
-                    <button class="btn-mini" onclick="removeLogo()" style="color:#ef4444; border-color:#ef4444; margin:0;"><i class="fas fa-trash"></i></button>
+        <!-- Export Dropdown -->
+        <div id="exportMenu" class="dropdown-menu">
+            <button class="menu-item" onclick="exportPDF();toggleExportMenu()"><i class="fas fa-file-pdf" style="color:#FF3B30"></i> Exporter PDF</button>
+            <button class="menu-item" onclick="exportJSON();toggleExportMenu()"><i class="fas fa-file-code" style="color:#34C759"></i> Sauvegarde JSON</button>
+        </div>
+
+        <div class="content">
+            <div class="search-bar">
+                <i class="fas fa-search" style="color:#8E8E93"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
+                <select id="filterCategory" onchange="renderList()" style="width:auto; border:none; background:none; color:var(--primary); font-weight:600">
+                    <option value="All">Tout</option>
+                </select>
+            </div>
+            <div style="font-size:13px; color:#8E8E93; margin:0 0 10px 5px;"><span id="countDisplay">0</span> fiches</div>
+            <div id="entryList"></div>
+            <div style="height: 60px;"></div> <!-- Spacer -->
+        </div>
+    </div>
+
+    <!-- === VIEW 2: FORMULAIRE (DETAIL/NEW) === -->
+    <div id="viewForm" class="view hidden-right">
+        <div class="nav-bar">
+            <button class="nav-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i> Retour</button>
+            <div class="nav-title" id="formTitle">Nouvelle Fiche</div>
+            <button class="nav-btn" onclick="saveEntry()" style="font-weight:600">OK</button>
+        </div>
+
+        <div class="content">
+            <input type="hidden" id="entryId">
+
+            <div class="ios-list">
+                <div class="ios-item">
+                    <span class="ios-label">Date</span>
+                    <input type="datetime-local" id="entryDate" class="ios-input">
+                </div>
+                <div class="ios-item">
+                    <span class="ios-label">Lieu / Site</span>
+                    <select id="entrySite" class="ios-input"></select>
+                </div>
+                <div class="ios-item">
+                    <span class="ios-label">Rubrique</span>
+                    <select id="entryCategory" class="ios-input"></select>
+                </div>
+                <div class="ios-item">
+                    <span class="ios-label">Avancement: <span id="progDisplay" style="color:var(--primary)">0%</span></span>
+                    <input type="range" id="entryProgress" min="0" max="100" step="10" value="0" style="width:100%; margin-top:10px" oninput="document.getElementById('progDisplay').innerText=this.value+'%'">
                 </div>
             </div>
-        </div>
 
-        <div class="setting-group">
-            <h4>📍 Sites</h4>
-            <div class="setting-list" id="siteList"></div>
-            <div class="setting-add">
-                <input type="text" id="newSiteInput" placeholder="Nouveau site...">
-                <button class="btn-mini" onclick="addSetting('sites')"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
-        <div class="setting-group">
-            <h4>🏷️ Catégories</h4>
-            <div class="setting-list" id="catList"></div>
-            <div class="setting-add">
-                <input type="text" id="newCatInput" placeholder="Nouvelle cat...">
-                <button class="btn-mini" onclick="addSetting('categories')"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
-        <div style="height:20px;"></div>
-        <button class="btn btn-primary" onclick="toggleSettings()">OK</button>
-    </div>
-</div>
-
-<!-- SIDEBAR (LISTE) -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="top-bar">
-            <span class="app-title">Journal Chantier</span>
-            <button class="btn-settings" onclick="toggleSettings()"><i class="fas fa-cog"></i></button>
-        </div>
-
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
-        </div>
-        <div class="filter-row">
-            <select id="filterCategory" onchange="renderList()"></select>
-        </div>
-        <div class="action-row">
-            <button class="btn-mini" onclick="createNew()"><i class="fas fa-plus" style="color:var(--primary)"></i> Nouveau</button>
-            <button class="btn-mini" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-            <button class="btn-mini" onclick="exportJSON()"><i class="fas fa-download"></i> Backup</button>
-        </div>
-        <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top:10px;">
-            <span id="countDisplay">0</span> fiches
-        </div>
-    </div>
-    <div class="entry-list" id="entryList"></div>
-</aside>
-
-<!-- MAIN CONTENT (FORMULAIRE) -->
-<main class="main-content" id="mainContent">
-    <div class="form-container">
-        <div class="header-edit">
-            <button class="btn-mobile-back" onclick="closeMobileForm()"><i class="fas fa-chevron-left"></i></button>
-            <h2 id="formTitle">Fiche</h2>
-            <button id="deleteBtn" class="btn btn-danger hidden" onclick="deleteMainEntry()" style="padding: 8px 12px; font-size: 0.8rem;">Supprimer</button>
-        </div>
-        <input type="hidden" id="entryId">
-
-        <div class="row">
-            <div><label>Date</label><input type="datetime-local" id="entryDate"></div>
-            <div><label>Rubrique</label><select id="entryCategory"></select></div>
-        </div>
-        <div class="row">
-            <div><label>Lieu</label><select id="entrySite"></select></div>
-            <div>
-                <label>Avancement: <span id="progDisplay" style="color:var(--primary)">0%</span></label>
-                <input type="range" id="entryProgress" min="0" max="100" step="10" value="0" style="width:100%" oninput="document.getElementById('progDisplay').innerText=this.value+'%'">
-            </div>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <label>Description</label>
-            <textarea id="entryDesc" rows="5" placeholder="Détails..."></textarea>
-        </div>
-
-        <div class="photo-section">
-            <label class="btn-file">
-                <i class="fas fa-camera" style="color:var(--primary)"></i> Ajouter Photos
-                <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handleMainPhotos(this)">
-            </label>
-            <div class="photo-gallery" id="mainPhotoGallery"></div>
-        </div>
-
-        <button class="btn btn-primary" onclick="saveMainEntry()">Enregistrer la fiche</button>
-
-        <div id="timelineSection" class="timeline-section hidden">
-            <div style="font-weight:800; margin-bottom:15px; font-size:1.1rem; color:#334155;">Fil d'actualité</div>
-            <div class="timeline-input-box">
-                <div style="display:flex; flex-direction:column; gap:10px;">
-                    <input type="text" id="updateText" placeholder="Ajouter une note de suivi...">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <input type="datetime-local" id="updateDate" style="width:auto; flex-grow:0;">
-                        <div style="display:flex; gap:10px;">
-                             <label class="btn-icon" style="cursor:pointer; font-size:1.5rem; color:var(--primary);">
-                                <i class="fas fa-camera"></i>
-                                <input type="file" accept="image/*" multiple style="display:none" onchange="handleUpdatePhotos(this)">
-                            </label>
-                            <button class="btn btn-success" style="width:auto; margin:0; padding: 8px 15px;" onclick="addUpdate()">Ajouter</button>
-                        </div>
+            <div class="ios-list">
+                <div class="ios-item">
+                    <span class="ios-label">Description</span>
+                    <textarea id="entryDesc" class="ios-input" placeholder="Notes, observations..."></textarea>
+                </div>
+                <div class="ios-item">
+                    <span class="ios-label" style="margin-bottom:10px">Photos</span>
+                    <div class="h-scroll">
+                        <label class="add-photo-btn">
+                            <i class="fas fa-camera fa-2x"></i>
+                            <span style="margin-top:4px">Ajouter</span>
+                            <input type="file" multiple accept="image/*" style="display:none" onchange="handleMainPhotos(this)">
+                        </label>
+                        <div id="mainPhotoGallery" style="display:flex; gap:10px"></div>
                     </div>
                 </div>
-                <div class="photo-gallery" id="updatePhotoPreview" style="margin-top:10px;"></div>
             </div>
-            <div id="timelineList"></div>
+
+            <div id="timelineSection" class="hidden">
+                <h4 style="margin:20px 0 10px 10px; color:var(--text-sec); text-transform:uppercase; font-size:13px;">Historique & Suivi</h4>
+
+                <!-- Mini form ajout suivi -->
+                <div class="ios-list" style="margin-bottom:15px">
+                    <div class="ios-item" style="flex-direction:row; align-items:center; gap:10px">
+                        <input type="text" id="updateText" class="ios-input" placeholder="Ajouter une note de suivi..." style="flex-grow:1">
+                        <label style="color:var(--primary); cursor:pointer"><i class="fas fa-camera"></i><input type="file" multiple accept="image/*" style="display:none" onchange="handleUpdatePhotos(this)"></label>
+                        <button onclick="addUpdate()" style="background:var(--success); color:white; border:none; border-radius:15px; width:30px; height:30px;"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+                    <div id="updatePhotoPreview" class="h-scroll" style="padding:0 15px 10px 15px;"></div>
+                </div>
+
+                <div class="timeline" id="timelineList"></div>
+            </div>
+
+            <button id="deleteBtn" class="nav-btn danger" style="width:100%; margin-top:20px; padding:15px; background:white; border-radius:12px;" onclick="deleteEntry()">Supprimer cette fiche</button>
+            <div style="height: 100px;"></div>
         </div>
     </div>
-</main>
 
-<script>
-    // --- MODE MOBILE ---
-    function openMobileForm() { document.body.classList.add('view-form'); window.scrollTo(0,0); }
-    function closeMobileForm() { document.body.classList.remove('view-form'); }
+    <!-- === VIEW 3: SETTINGS (MODAL) === -->
+    <div id="viewSettings" class="view view-modal">
+        <div class="nav-bar">
+            <div class="nav-title">Réglages</div>
+            <button class="nav-btn" onclick="closeSettings()" style="position:absolute; right:15px; font-weight:600">Fermer</button>
+        </div>
+        <div class="content">
 
-    // --- CONFIG & DATA ---
-    const defaultSettings = {
-        sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
-        categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
-        pdfTitle: "Rapport de Chantier",
-        logo: null
-    };
-    let appData = { settings: {...defaultSettings}, entries: [] };
+            <div class="setting-header">Personnalisation PDF</div>
+            <div class="setting-group">
+                <div class="setting-row">
+                    <span>Titre du document</span>
+                    <input type="text" id="pdfTitleInput" onchange="savePdfSettings()" style="text-align:right; border:none; color:var(--primary); outline:none" placeholder="Rapport...">
+                </div>
+                <div class="setting-row">
+                    <span>Logo</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div id="logoPreview" style="width:40px; height:40px; background:#eee; border-radius:6px; overflow:hidden"></div>
+                        <label style="color:var(--primary); cursor:pointer">Modifier<input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></label>
+                        <button onclick="removeLogo()" style="border:none; background:none; color:var(--danger);"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
 
-    // --- INIT ---
-    function initApp() {
-        const raw = localStorage.getItem('journal_v10'); // New key for V10
-        if (raw) { appData = JSON.parse(raw); appData.settings = {...defaultSettings, ...appData.settings}; }
-        else {
-            // Migration V7/V9 -> V10
-            const old = localStorage.getItem('journalEntries_v7');
-            if(old) { appData = JSON.parse(old); saveToStorage(); }
+            <div class="setting-header">Listes de choix</div>
+            <div class="setting-group">
+                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:10px">
+                    <div style="display:flex; justify-content:space-between"><strong>Lieux / Sites</strong></div>
+                    <div id="siteList" style="display:flex; flex-wrap:wrap; gap:8px"></div>
+                    <div style="display:flex; gap:10px; margin-top:5px">
+                        <input type="text" id="newSiteInput" placeholder="Nouveau..." style="flex:1; border:1px solid #ddd; border-radius:6px; padding:6px">
+                        <button onclick="addSetting('sites')" style="background:var(--primary); color:white; border:none; border-radius:6px; padding:0 12px">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:10px">
+                    <div style="display:flex; justify-content:space-between"><strong>Rubriques</strong></div>
+                    <div id="catList" style="display:flex; flex-wrap:wrap; gap:8px"></div>
+                    <div style="display:flex; gap:10px; margin-top:5px">
+                        <input type="text" id="newCatInput" placeholder="Nouvelle..." style="flex:1; border:1px solid #ddd; border-radius:6px; padding:6px">
+                        <button onclick="addSetting('categories')" style="background:var(--primary); color:white; border:none; border-radius:6px; padding:0 12px">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 11.0 (iOS Style)</div>
+            <div style="height:50px"></div>
+        </div>
+    </div>
+
+    <!-- === TAB BAR (NAVIGATION) === -->
+    <div class="tab-bar">
+        <button class="tab-item active" onclick="goHome()">
+            <i class="fas fa-list-ul"></i>
+            <span>Journal</span>
+        </button>
+        <button class="tab-item big-add" onclick="createNew()">
+            <div><i class="fas fa-plus"></i></div>
+        </button>
+        <button class="tab-item" onclick="openSettings()">
+            <i class="fas fa-cog"></i>
+            <span>Réglages</span>
+        </button>
+    </div>
+
+    <script>
+        // --- NAVIGATION LOGIC ---
+        function goHome() {
+            document.getElementById('viewList').classList.remove('hidden-left');
+            document.getElementById('viewList').classList.add('active');
+            document.getElementById('viewForm').classList.remove('active');
+            document.getElementById('viewForm').classList.add('hidden-right');
+            // Close settings if open
+            closeSettings();
         }
-        updateDropdowns(); setNow('entryDate'); renderList(); renderSettingsUI();
-    }
-    function saveToStorage() { localStorage.setItem('journal_v10', JSON.stringify(appData)); }
 
-    // --- SETTINGS UI ---
-    function toggleSettings() { document.getElementById('settingsModal').classList.toggle('hidden'); renderSettingsUI(); }
-    function renderSettingsUI() {
-        document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
-        const lp = document.getElementById('logoPreview');
-        lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:contain">` : `<i class="fas fa-image" style="color:#cbd5e1"></i>`;
-        renderListSet('siteList', appData.settings.sites, 'sites');
-        renderListSet('catList', appData.settings.categories, 'categories');
-    }
-    function renderListSet(id, arr, type) {
-        document.getElementById(id).innerHTML = arr.map((item,i) => `
-            <div class="setting-item"><span>${item}</span><button style="border:none;background:none;color:#ef4444" onclick="rmSet('${type}',${i})">&times;</button></div>
-        `).join('');
-    }
-    function addSetting(type) {
-        const val = document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value.trim();
-        if(val && !appData.settings[type].includes(val)) { appData.settings[type].push(val); saveToStorage(); renderSettingsUI(); updateDropdowns(); }
-    }
-    function rmSet(type, i) { if(confirm("Supprimer ?")) { appData.settings[type].splice(i,1); saveToStorage(); renderSettingsUI(); updateDropdowns(); } }
+        function goBack() {
+            // Alias for goHome
+            goHome();
+        }
 
-    function savePdfSettings() { appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value; saveToStorage(); }
-    async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); saveToStorage(); renderSettingsUI(); } }
-    function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; saveToStorage(); renderSettingsUI(); } }
+        function openForm() {
+            document.getElementById('viewList').classList.remove('active');
+            document.getElementById('viewList').classList.add('hidden-left');
+            document.getElementById('viewForm').classList.remove('hidden-right');
+            document.getElementById('viewForm').classList.add('active');
+        }
 
-    function updateDropdowns() {
-        const opts = (arr) => arr.map(x => `<option value="${x}">${x}</option>`).join('');
-        document.getElementById('entrySite').innerHTML = '<option disabled selected>Choisir...</option>' + opts(appData.settings.sites);
-        document.getElementById('entryCategory').innerHTML = opts(appData.settings.categories);
-        document.getElementById('filterCategory').innerHTML = '<option value="All">Tout</option>' + opts(appData.settings.categories);
-    }
+        function openSettings() {
+            document.getElementById('viewSettings').classList.add('active');
+        }
 
-    // --- CORE LOGIC ---
-    function resizeImage(file, max=800) {
-        return new Promise(r => {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const img = new Image();
-                img.onload = () => {
-                    const c = document.createElement('canvas');
-                    let w=img.width, h=img.height;
-                    if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
-                    c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
-                    r(c.toDataURL('image/jpeg', 0.7));
-                }
-                img.src = e.target.result;
+        function closeSettings() {
+            document.getElementById('viewSettings').classList.remove('active');
+        }
+
+        function toggleExportMenu() {
+            document.getElementById('exportMenu').classList.toggle('show');
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('exportMenu');
+            const btn = document.querySelector('.nav-btn.icon');
+            if (!menu.contains(event.target) && !btn.contains(event.target) && menu.classList.contains('show')) {
+                menu.classList.remove('show');
             }
-            reader.readAsDataURL(file);
         });
-    }
 
-    let tmpMain=[], tmpUp=[];
-    async function handleMainPhotos(inp) { if(inp.files) for(let f of inp.files) tmpMain.push(await resizeImage(f)); renderGal('mainPhotoGallery', tmpMain, 'tmpMain'); inp.value=''; }
-    async function handleUpdatePhotos(inp) { if(inp.files) for(let f of inp.files) tmpUp.push(await resizeImage(f)); renderGal('updatePhotoPreview', tmpUp, 'tmpUp'); inp.value=''; }
-
-    function renderGal(id, arr, varName) {
-        document.getElementById(id).innerHTML = arr.map((p,i) =>
-            `<div class="photo-item"><img src="${p}"><button class="photo-del" onclick="${varName}.splice(${i},1);renderGal('${id}',${varName},'${varName}')">&times;</button></div>`
-        ).join('');
-    }
-
-    let curId = null;
-    function saveMainEntry() {
-        const site = document.getElementById('entrySite').value;
-        if(site === "Choisir...") return alert("Le site est requis");
-
-        const entry = {
-            id: curId || Date.now(),
-            date: document.getElementById('entryDate').value,
-            site: site,
-            category: document.getElementById('entryCategory').value,
-            progress: document.getElementById('entryProgress').value,
-            description: document.getElementById('entryDesc').value,
-            photos: [...tmpMain],
-            updates: curId ? appData.entries.find(e=>e.id===curId).updates : []
+        // --- APP DATA & LOGIC (V10 Core) ---
+        const defaultSettings = {
+            sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
+            categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
+            pdfTitle: "Rapport de Chantier",
+            logo: null
         };
+        let appData = { settings: {...defaultSettings}, entries: [] };
 
-        if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
-        else { appData.entries.unshift(entry); curId = entry.id; }
+        function initApp() {
+            const raw = localStorage.getItem('journal_v10');
+            if (raw) { appData = JSON.parse(raw); appData.settings = {...defaultSettings, ...appData.settings}; }
+            else {
+                // Migration V7/V9 -> V10/V11
+                const old = localStorage.getItem('journalEntries_v7');
+                if(old) { appData = JSON.parse(old); saveToStorage(); }
+            }
+            updateDropdowns();
+            renderList();
 
-        saveToStorage(); loadEntry(curId); renderList();
-    }
-
-    function loadEntry(id) {
-        curId = id;
-        const e = appData.entries.find(x => x.id === id);
-
-        document.getElementById('entryDate').value = e.date;
-        document.getElementById('entryCategory').value = e.category;
-        document.getElementById('entryProgress').value = e.progress;
-        document.getElementById('progDisplay').innerText = e.progress+'%';
-        document.getElementById('entryDesc').value = e.description;
-
-        // Site archivé
-        const sSel = document.getElementById('entrySite');
-        if(!appData.settings.sites.includes(e.site)) sSel.innerHTML += `<option value="${e.site}">${e.site} (Archivé)</option>`;
-        sSel.value = e.site;
-
-        tmpMain = [...e.photos||[]]; renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
-
-        document.getElementById('deleteBtn').classList.remove('hidden');
-        document.getElementById('timelineSection').classList.remove('hidden');
-        renderTimeline(e.updates||[]);
-
-        tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
-        setNow('updateDate'); document.getElementById('updateText').value='';
-
-        openMobileForm();
-    }
-
-    function createNew() {
-        curId = null; tmpMain=[]; renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
-        document.getElementById('deleteBtn').classList.add('hidden');
-        document.getElementById('timelineSection').classList.add('hidden');
-        document.getElementById('entrySite').value = 'Choisir...';
-        document.getElementById('entryDesc').value = '';
-        document.getElementById('entryProgress').value = 0;
-        document.getElementById('progDisplay').innerText = "0%";
-        setNow('entryDate');
-        openMobileForm();
-    }
-
-    function deleteMainEntry() {
-        if(confirm("Supprimer ?")) {
-            appData.entries = appData.entries.filter(e => e.id !== curId);
-            saveToStorage(); renderList(); closeMobileForm();
+            // Init Settings UI
+            document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
+            renderLogoPreview();
+            renderChips('siteList', appData.settings.sites, 'sites');
+            renderChips('catList', appData.settings.categories, 'categories');
         }
-    }
 
-    function addUpdate() {
-        if(!curId) return;
-        const txt = document.getElementById('updateText').value;
-        if(!txt && tmpUp.length===0) return;
-        const e = appData.entries.find(x => x.id === curId);
-        if(!e.updates) e.updates = [];
-        e.updates.unshift({ id:Date.now(), date:document.getElementById('updateDate').value||new Date().toISOString(), text:txt, photos:[...tmpUp] });
-        saveToStorage();
-        document.getElementById('updateText').value=''; tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
-        renderTimeline(e.updates); renderList();
-    }
+        function saveToStorage() { localStorage.setItem('journal_v10', JSON.stringify(appData)); }
 
-    function renderTimeline(updates) {
-        document.getElementById('timelineList').innerHTML = updates.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(u => {
-            const imgs = (u.photos||[]).map(p=>`<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #eee" onclick="window.open('${p}')">`).join('');
-            return `<div class="timeline-item">
-                <div style="font-size:0.75rem;color:#64748b;margin-bottom:4px;display:flex;justify-content:space-between">
-                    ${new Date(u.date).toLocaleDateString()} ${new Date(u.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
-                    <i class="fas fa-trash" style="cursor:pointer" onclick="delUp(${u.id})"></i>
-                </div>
-                <div style="background:white;padding:12px;border:1px solid #e2e8f0;border-radius:8px;">
-                    <div>${u.text}</div>
-                    <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">${imgs}</div>
-                </div>
-            </div>`;
-        }).join('');
-    }
-    function delUp(uid) {
-        if(!confirm("Supprimer ?")) return;
-        const e = appData.entries.find(x => x.id === curId);
-        e.updates = e.updates.filter(u => u.id !== uid);
-        saveToStorage(); renderTimeline(e.updates);
-    }
+        // --- LIST RENDERING ---
+        function renderList() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            const list = document.getElementById('entryList');
 
-    function renderList() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const cat = document.getElementById('filterCategory').value;
-        const list = document.getElementById('entryList');
+            const res = appData.entries.filter(e =>
+                (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search)) &&
+                (cat === 'All' || e.category === cat)
+            ).sort((a,b) => new Date(b.date) - new Date(a.date));
 
-        const res = appData.entries.filter(e =>
-            (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search)) &&
-            (cat === 'All' || e.category === cat)
-        ).sort((a,b) => new Date(b.date) - new Date(a.date));
+            document.getElementById('countDisplay').innerText = res.length;
 
-        document.getElementById('countDisplay').innerText = res.length;
-        list.innerHTML = res.map(e => {
-            let pCount = (e.photos?.length||0) + (e.updates?.reduce((acc,u)=>acc+(u.photos?.length||0),0)||0);
-            return `<div class="entry-card ${curId===e.id?'active':''}" onclick="loadEntry(${e.id})">
-                <div class="card-header"><span>${new Date(e.date).toLocaleDateString()}</span><span>${e.progress}%</span></div>
-                <div class="card-title">${e.site}</div>
-                <div class="card-preview">${e.description}</div>
-                <div style="font-size:0.75rem;margin-top:8px;color:#64748b">
-                    ${pCount>0?`<i class="fas fa-camera" style="color:#2563eb"></i> ${pCount}`:''}
-                    ${e.updates?.length>0?`<i class="fas fa-history" style="color:#10b981;margin-left:8px"></i> ${e.updates.length}`:''}
-                </div>
-            </div>`;
-        }).join('');
-    }
+            list.innerHTML = res.map(e => {
+                const pCount = (e.photos?.length||0);
+                const uCount = (e.updates?.length||0);
+                const dateObj = new Date(e.date);
+                const day = dateObj.getDate();
+                const month = dateObj.toLocaleString('default', { month: 'short' });
 
-    // --- PDF ---
-    function exportPDF() {
-        const doc = new window.jspdf.jsPDF();
-        const title = appData.settings.pdfTitle || "Rapport";
+                return `
+                <div class="journal-card" onclick="loadEntry(${e.id})">
+                    <div class="j-header">
+                        <span>${day} ${month} • ${new Date(e.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+                        <span style="color:var(--primary)">${e.progress}%</span>
+                    </div>
+                    <div class="j-title">${e.site} <span style="font-weight:400; color:var(--text-sec); font-size:14px">(${e.category})</span></div>
+                    <div class="j-desc">${e.description}</div>
+                    <div class="j-footer">
+                        ${pCount ? `<div class="badge blue"><i class="fas fa-camera"></i> ${pCount}</div>` : ''}
+                        ${uCount ? `<div class="badge"><i class="fas fa-history"></i> ${uCount}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
-        doc.setFillColor(37, 99, 235); doc.rect(0,0,210,35,'F');
-        doc.setTextColor(255); doc.setFontSize(18);
-        if(appData.settings.logo) { try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){} doc.text(title,40,22); }
-        else { doc.text(title,10,22); }
+        // --- FORM & CRUD ---
+        let curId = null;
+        let tmpMain=[], tmpUp=[];
 
-        let y=45;
-        appData.entries.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e => {
-            if(y>250){doc.addPage();y=20;}
-            doc.setFillColor(240); doc.rect(10,y,190,8,'F');
-            doc.setTextColor(0); doc.setFontSize(11); doc.setFont("helvetica","bold");
-            doc.text(`${new Date(e.date).toLocaleDateString()} | ${e.site}`, 12, y+6);
-            y+=14;
+        function createNew() {
+            curId = null; tmpMain=[]; tmpUp=[];
+            document.getElementById('formTitle').innerText = "Nouvelle Fiche";
+            document.getElementById('entrySite').value = '';
+            document.getElementById('entryDesc').value = '';
+            document.getElementById('entryProgress').value = 0; document.getElementById('progDisplay').innerText="0%";
+            document.getElementById('deleteBtn').classList.add('hidden');
+            document.getElementById('timelineSection').classList.add('hidden');
 
-            doc.setFont("helvetica","normal"); doc.setFontSize(10);
-            const lines = doc.splitTextToSize(e.description, 180);
-            doc.text(lines, 12, y); y += (lines.length*5)+5;
+            // Set Date now
+            const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+            document.getElementById('entryDate').value=d.toISOString().slice(0,16);
 
-            if(e.photos?.length) {
-                let x=12; e.photos.forEach(p=>{
-                    if(x>170){x=12;y+=35;} if(y>250){doc.addPage();y=20;}
-                    try{doc.addImage(p,'JPEG',x,y,30,30);x+=35;}catch(err){}
-                }); y+=35;
+            renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
+            openForm();
+        }
+
+        function loadEntry(id) {
+            curId = id;
+            const e = appData.entries.find(x => x.id === id);
+
+            document.getElementById('formTitle').innerText = "Détails";
+            document.getElementById('entryDate').value = e.date;
+            document.getElementById('entryCategory').value = e.category;
+            document.getElementById('entryProgress').value = e.progress;
+            document.getElementById('progDisplay').innerText = e.progress+'%';
+            document.getElementById('entryDesc').value = e.description;
+
+            // Handle archived sites
+            const sSel = document.getElementById('entrySite');
+            if(![...sSel.options].some(o => o.value === e.site)) {
+                 const opt = document.createElement('option'); opt.value = e.site; opt.text = e.site + " (Archivé)"; sSel.add(opt);
             }
-            if(e.updates?.length) {
-                e.updates.forEach(u=>{
-                   if(y>270){doc.addPage();y=20;}
-                   doc.setTextColor(100); doc.setFontSize(9);
-                   doc.text(`• ${new Date(u.date).toLocaleDateString()}: ${u.text}`, 15, y); y+=5;
-                }); y+=5;
+            sSel.value = e.site;
+
+            tmpMain = [...e.photos||[]];
+            renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
+
+            document.getElementById('deleteBtn').classList.remove('hidden');
+            document.getElementById('timelineSection').classList.remove('hidden');
+
+            renderTimeline(e.updates||[]);
+
+            tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
+            document.getElementById('updateText').value='';
+
+            openForm();
+        }
+
+        function saveEntry() {
+            const site = document.getElementById('entrySite').value;
+            if(!site) return alert("Choisissez un lieu");
+
+            const entry = {
+                id: curId || Date.now(),
+                date: document.getElementById('entryDate').value,
+                site: site,
+                category: document.getElementById('entryCategory').value,
+                progress: document.getElementById('entryProgress').value,
+                description: document.getElementById('entryDesc').value,
+                photos: [...tmpMain],
+                updates: curId ? appData.entries.find(e=>e.id===curId).updates : []
+            };
+
+            if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
+            else { appData.entries.unshift(entry); curId = entry.id; }
+
+            saveToStorage();
+            goHome();
+            renderList();
+        }
+
+        function deleteEntry() {
+            if(confirm("Supprimer définitivement ?")) {
+                appData.entries = appData.entries.filter(e => e.id !== curId);
+                saveToStorage(); goHome(); renderList();
             }
-            doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
-        });
-        doc.save("rapport.pdf");
-    }
+        }
 
-    // UTILS
-    function setNow(id) { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); document.getElementById(id).value=d.toISOString().slice(0,16); }
-    function exportJSON() {
-        const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData));
-        a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove();
-    }
+        // --- PHOTOS ---
+        function resizeImage(file, max=800) {
+            return new Promise(r => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const c = document.createElement('canvas');
+                        let w=img.width, h=img.height;
+                        if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
+                        c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+                        r(c.toDataURL('image/jpeg', 0.7));
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+        }
 
-    initApp();
-</script>
+        async function handleMainPhotos(inp) { if(inp.files) for(let f of inp.files) tmpMain.push(await resizeImage(f)); renderGal('mainPhotoGallery', tmpMain, 'tmpMain'); inp.value=''; }
+        async function handleUpdatePhotos(inp) { if(inp.files) for(let f of inp.files) tmpUp.push(await resizeImage(f)); renderGal('updatePhotoPreview', tmpUp, 'tmpUp'); inp.value=''; }
+
+        function renderGal(id, arr, varName) {
+            document.getElementById(id).innerHTML = arr.map((p,i) =>
+                `<div class="photo-thumb"><img src="${p}" onclick="window.open('${p}')"><button class="btn-del-photo" onclick="${varName}.splice(${i},1);renderGal('${id}',${varName},'${varName}')">&times;</button></div>`
+            ).join('');
+        }
+
+        // --- UPDATES / TIMELINE ---
+        function addUpdate() {
+            if(!curId) return;
+            const txt = document.getElementById('updateText').value;
+            if(!txt && tmpUp.length===0) return;
+
+            const e = appData.entries.find(x => x.id === curId);
+            if(!e.updates) e.updates = [];
+
+            // Note: Update date is simpler now, just "Now"
+            e.updates.unshift({
+                id:Date.now(),
+                date: new Date().toISOString(),
+                text:txt,
+                photos:[...tmpUp]
+            });
+
+            saveToStorage();
+            document.getElementById('updateText').value=''; tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
+            renderTimeline(e.updates);
+        }
+
+        function renderTimeline(updates) {
+            const container = document.getElementById('timelineList');
+            if(!updates || updates.length === 0) { container.innerHTML = "<div style='font-size:13px;color:#aaa;padding:10px'>Aucun historique</div>"; return; }
+
+            container.innerHTML = updates.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(u => {
+                const imgs = (u.photos||[]).map(p=>`<img src="${p}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #eee;margin-top:5px;margin-right:5px" onclick="window.open('${p}')">`).join('');
+                return `
+                <div class="t-item">
+                    <div class="t-date">${new Date(u.date).toLocaleString()} <i class="fas fa-trash" style="float:right; cursor:pointer; color:#FF3B30" onclick="delUp(${u.id})"></i></div>
+                    <div class="t-text">
+                        <div>${u.text}</div>
+                        <div>${imgs}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function delUp(uid) {
+            if(!confirm("Supprimer ?")) return;
+            const e = appData.entries.find(x => x.id === curId);
+            e.updates = e.updates.filter(u => u.id !== uid);
+            saveToStorage(); renderTimeline(e.updates);
+        }
+
+        // --- SETTINGS LOGIC ---
+        function updateDropdowns() {
+            const opts = (arr) => arr.map(x => `<option value="${x}">${x}</option>`).join('');
+            document.getElementById('entrySite').innerHTML = '<option value="" disabled selected>Choisir...</option>' + opts(appData.settings.sites);
+            document.getElementById('entryCategory').innerHTML = opts(appData.settings.categories);
+            document.getElementById('filterCategory').innerHTML = '<option value="All">Tout</option>' + opts(appData.settings.categories);
+        }
+
+        function renderChips(id, arr, type) {
+            document.getElementById(id).innerHTML = arr.map((item,i) => `
+                <div style="background:#f2f2f7; padding:5px 10px; border-radius:15px; font-size:13px; display:flex; align-items:center; gap:5px">
+                    ${item} <button onclick="rmSet('${type}',${i})" style="border:none;background:none;color:#FF3B30;font-size:14px;padding:0">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function addSetting(type) {
+            const val = document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value.trim();
+            if(val && !appData.settings[type].includes(val)) {
+                appData.settings[type].push(val);
+                document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value = '';
+                saveToStorage(); renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
+            }
+        }
+        function rmSet(type, i) {
+            if(confirm("Supprimer ?")) {
+                appData.settings[type].splice(i,1);
+                saveToStorage(); renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
+            }
+        }
+
+        function savePdfSettings() { appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value; saveToStorage(); }
+        async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); saveToStorage(); renderLogoPreview(); } }
+        function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; saveToStorage(); renderLogoPreview(); } }
+        function renderLogoPreview() {
+            const lp = document.getElementById('logoPreview');
+            lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:cover">` : ``;
+        }
+
+        // --- EXPORT PDF (Identique V10) ---
+        function exportPDF() {
+            const doc = new window.jspdf.jsPDF();
+            const title = appData.settings.pdfTitle || "Rapport";
+
+            doc.setFillColor(0, 122, 255); doc.rect(0,0,210,35,'F'); // Apple Blue
+            doc.setTextColor(255); doc.setFontSize(18);
+            if(appData.settings.logo) { try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){} doc.text(title,40,22); }
+            else { doc.text(title,10,22); }
+
+            let y=45;
+            appData.entries.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e => {
+                if(y>250){doc.addPage();y=20;}
+                doc.setFillColor(242, 242, 247); doc.rect(10,y,190,8,'F');
+                doc.setTextColor(0); doc.setFontSize(11); doc.setFont("helvetica","bold");
+                doc.text(`${new Date(e.date).toLocaleDateString()} | ${e.site}`, 12, y+6);
+                y+=14;
+                doc.setFont("helvetica","normal"); doc.setFontSize(10);
+                const lines = doc.splitTextToSize(e.description, 180);
+                doc.text(lines, 12, y); y += (lines.length*5)+5;
+                if(e.photos?.length) {
+                    let x=12; e.photos.forEach(p=>{
+                        if(x>170){x=12;y+=35;} if(y>250){doc.addPage();y=20;}
+                        try{doc.addImage(p,'JPEG',x,y,30,30);x+=35;}catch(err){}
+                    }); y+=35;
+                }
+                if(e.updates?.length) {
+                    e.updates.forEach(u=>{
+                       if(y>270){doc.addPage();y=20;}
+                       doc.setTextColor(100); doc.setFontSize(9);
+                       doc.text(`• ${new Date(u.date).toLocaleDateString()}: ${u.text}`, 15, y); y+=5;
+                    }); y+=5;
+                }
+                doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
+            });
+            doc.save("rapport.pdf");
+        }
+        function exportJSON() {
+            const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData));
+            a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        // Start
+        initApp();
+    </script>
 </body>
 </html>
