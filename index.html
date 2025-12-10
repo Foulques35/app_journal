@@ -40,7 +40,7 @@
             overflow: hidden;
             -webkit-user-select: none; user-select: none;
             -webkit-tap-highlight-color: transparent;
-            overscroll-behavior: none; /* Empêche le rebond global */
+            overscroll-behavior: none;
         }
 
         * { box-sizing: border-box; }
@@ -53,34 +53,26 @@
             background: var(--bg-app);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
             padding-top: var(--safe-top);
-            padding-bottom: calc(60px + var(--safe-bottom)); /* Espace pour la TabBar par défaut */
+            padding-bottom: calc(60px + var(--safe-bottom));
             z-index: 10;
         }
 
-        /* Animations de transition */
         .view.hidden-right { transform: translateX(100%); pointer-events: none; }
         .view.active { transform: translateX(0); }
         .view.hidden-left { transform: translateX(-30%); opacity: 0.8; }
 
-        /* --- MODAL REGLAGES (FIX Z-INDEX) --- */
+        /* --- MODAL REGLAGES --- */
         .view-modal {
-            position: fixed; /* Fixed pour passer au dessus de tout */
-            z-index: 9999; /* Z-Index très haut pour passer devant la TabBar */
+            position: fixed; z-index: 9999;
             transform: translateY(100%);
             transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-            padding-bottom: var(--safe-bottom); /* Pas besoin d'espace pour la TabBar ici */
+            padding-bottom: var(--safe-bottom);
             background: var(--bg-app);
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
+            border-top-left-radius: 15px; border-top-right-radius: 15px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
         }
         .view-modal.active { transform: translateY(0); }
-
-        /* Petite poignée visuelle pour le modal */
-        .modal-handle {
-            width: 40px; height: 5px; background: #C5C5C7; border-radius: 3px;
-            margin: 8px auto 0 auto;
-        }
+        .modal-handle { width: 40px; height: 5px; background: #C5C5C7; border-radius: 3px; margin: 8px auto 0 auto; }
 
         /* --- HEADER --- */
         .nav-bar {
@@ -93,21 +85,18 @@
             z-index: 50;
         }
         .nav-title { font-size: 17px; font-weight: 600; text-align: center; flex-grow: 1; }
-        .nav-btn {
-            color: var(--primary); font-size: 17px; background: none; border: none; cursor: pointer; padding: 10px 5px;
-        }
+        .nav-btn { color: var(--primary); font-size: 17px; background: none; border: none; cursor: pointer; padding: 10px 5px; }
         .nav-btn.danger { color: var(--danger); }
         .nav-btn.icon { font-size: 20px; width: 40px; display:flex; justify-content:flex-end; }
 
-        /* --- CONTENT SCROLLABLE --- */
+        /* --- CONTENT --- */
         .content {
             flex-grow: 1; overflow-y: auto; overflow-x: hidden;
-            padding: 15px;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 100px; /* Marge de sécurité en bas */
+            padding: 15px; -webkit-overflow-scrolling: touch;
+            padding-bottom: 100px;
         }
 
-        /* --- TAB BAR (BAS) --- */
+        /* --- TAB BAR --- */
         .tab-bar {
             position: absolute; bottom: 0; left: 0; width: 100%;
             height: calc(55px + var(--safe-bottom));
@@ -124,24 +113,31 @@
         }
         .tab-item i { font-size: 24px; margin-bottom: 4px; }
         .tab-item.active { color: var(--primary); }
-
-        /* Bouton central plus grand */
         .tab-item.big-add { transform: translateY(-20px); }
         .tab-item.big-add div {
             width: 54px; height: 54px;
-            background: var(--primary); color: white;
-            border-radius: 50%;
+            background: var(--primary); color: white; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 10px rgba(0,122,255,0.4);
         }
         .tab-item.big-add i { font-size: 26px; margin: 0; }
 
         /* --- ELEMENTS UI --- */
-        .search-bar {
-            margin-bottom: 15px; background: #e3e3e8; border-radius: 10px;
-            padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+        .search-container {
+            background: #e3e3e8; border-radius: 10px; padding: 8px 12px;
+            margin-bottom: 10px;
         }
+        .search-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .search-bar input { border: none; background: transparent; font-size: 17px; width: 100%; outline: none; }
+
+        .date-filter-row {
+            display: flex; gap: 10px; align-items: center;
+            border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px;
+        }
+        .date-filter-row input {
+            background: rgba(255,255,255,0.5); border: none; border-radius: 6px;
+            padding: 4px 8px; font-size: 13px; width: 100%; color: var(--text-main);
+        }
 
         .journal-card {
             background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 15px;
@@ -152,9 +148,19 @@
         .j-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--text-sec); }
         .j-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
         .j-desc { font-size: 15px; color: #3A3A3C; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .j-footer { margin-top: 10px; display: flex; gap: 10px; font-size: 12px; color: var(--text-sec); }
+        .j-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .j-badges { display: flex; gap: 10px; font-size: 12px; color: var(--text-sec); }
         .badge { background: #E5E5EA; padding: 3px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
         .badge.blue { color: var(--primary); background: rgba(0,122,255,0.1); }
+
+        /* Bouton PDF dans la carte */
+        .btn-pdf-mini {
+            background: rgba(255, 59, 48, 0.1); color: var(--danger);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+        .btn-pdf-mini:active { background: rgba(255, 59, 48, 0.2); }
 
         /* --- FORM --- */
         .ios-list { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 25px; }
@@ -191,7 +197,7 @@
         .t-date { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
         .t-text { font-size: 16px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #E5E5EA; line-height: 1.4; }
 
-        /* --- SETTINGS --- */
+        /* --- SETTINGS & MENU --- */
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: white; border-bottom: 1px solid #E5E5EA; }
         .setting-group { margin-bottom: 25px; border-radius: 12px; overflow: hidden; }
         .setting-header { padding: 0 0 8px 16px; font-size: 13px; color: var(--text-sec); text-transform: uppercase; }
@@ -223,18 +229,27 @@
         </div>
 
         <div id="exportMenu" class="dropdown-menu">
-            <button class="menu-item" onclick="exportPDF();toggleExportMenu()"><i class="fas fa-file-pdf" style="color:#FF3B30"></i> Exporter PDF</button>
+            <button class="menu-item" onclick="exportPDF(null);toggleExportMenu()"><i class="fas fa-file-pdf" style="color:#FF3B30"></i> Rapport Complet</button>
             <button class="menu-item" onclick="exportJSON();toggleExportMenu()"><i class="fas fa-file-code" style="color:#34C759"></i> Sauvegarde JSON</button>
         </div>
 
         <div class="content">
-            <div class="search-bar">
-                <i class="fas fa-search" style="color:#8E8E93"></i>
-                <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
-                <select id="filterCategory" onchange="renderList()" style="width:auto; border:none; background:none; color:var(--primary); font-weight:600; font-size:15px;">
-                    <option value="All">Tout</option>
-                </select>
+            <div class="search-container">
+                <div class="search-bar">
+                    <i class="fas fa-search" style="color:#8E8E93"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
+                    <select id="filterCategory" onchange="renderList()" style="width:auto; border:none; background:none; color:var(--primary); font-weight:600; font-size:15px;">
+                        <option value="All">Tout</option>
+                    </select>
+                </div>
+                <!-- Filtre Dates -->
+                <div class="date-filter-row">
+                    <input type="date" id="dateStart" onchange="renderList()" placeholder="Du...">
+                    <span style="color:#8E8E93; font-size:12px">au</span>
+                    <input type="date" id="dateEnd" onchange="renderList()" placeholder="Au...">
+                </div>
             </div>
+
             <div style="font-size:13px; color:#8E8E93; margin:0 0 10px 5px;"><span id="countDisplay">0</span> fiches</div>
             <div id="entryList"></div>
             <div style="height: 60px;"></div>
@@ -292,10 +307,14 @@
                 <h4 style="margin:20px 0 10px 10px; color:var(--text-sec); text-transform:uppercase; font-size:13px;">Historique & Suivi</h4>
 
                 <div class="ios-list" style="margin-bottom:15px">
-                    <div class="ios-item" style="flex-direction:row; align-items:center; gap:10px">
-                        <input type="text" id="updateText" class="ios-input" placeholder="Ajouter une note de suivi..." style="flex-grow:1">
-                        <label style="color:var(--primary); cursor:pointer"><i class="fas fa-camera" style="font-size:20px"></i><input type="file" multiple accept="image/*" style="display:none" onchange="handleUpdatePhotos(this)"></label>
-                        <button onclick="addUpdate()" style="background:var(--success); color:white; border:none; border-radius:15px; width:32px; height:32px; display:flex; align-items:center; justify-content:center"><i class="fas fa-arrow-up"></i></button>
+                    <div class="ios-item">
+                         <span class="ios-label">Ajouter un suivi</span>
+                         <input type="datetime-local" id="updateDate" class="ios-input" style="color:var(--primary); font-size:15px; margin-bottom:5px;">
+                         <div style="display:flex; align-items:center; gap:10px">
+                             <input type="text" id="updateText" class="ios-input" placeholder="Note de suivi..." style="flex-grow:1; border-bottom:1px solid #eee">
+                             <label style="color:var(--primary); cursor:pointer"><i class="fas fa-camera" style="font-size:20px"></i><input type="file" multiple accept="image/*" style="display:none" onchange="handleUpdatePhotos(this)"></label>
+                             <button onclick="addUpdate()" style="background:var(--success); color:white; border:none; border-radius:15px; width:32px; height:32px; display:flex; align-items:center; justify-content:center"><i class="fas fa-arrow-up"></i></button>
+                         </div>
                     </div>
                     <div id="updatePhotoPreview" class="h-scroll" style="padding:0 15px 10px 15px;"></div>
                 </div>
@@ -356,7 +375,7 @@
                 </div>
             </div>
 
-            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 12.0 (Mobile Fix)</div>
+            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 13.0 (PDF Fix & Dates)</div>
             <div style="height:100px"></div>
         </div>
     </div>
@@ -430,14 +449,23 @@
 
         function saveToStorage() { localStorage.setItem('journal_v10', JSON.stringify(appData)); }
 
-        // --- LIST ---
+        // --- LIST & FILTER ---
         function renderList() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
-            const res = appData.entries.filter(e =>
-                (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search)) &&
-                (cat === 'All' || e.category === cat)
-            ).sort((a,b) => new Date(b.date) - new Date(a.date));
+            const dStart = document.getElementById('dateStart').value;
+            const dEnd = document.getElementById('dateEnd').value;
+
+            const res = appData.entries.filter(e => {
+                const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
+                const matchesCat = (cat === 'All' || e.category === cat);
+                let matchesDate = true;
+                const entryDate = e.date.substring(0,10); // YYYY-MM-DD
+                if(dStart && entryDate < dStart) matchesDate = false;
+                if(dEnd && entryDate > dEnd) matchesDate = false;
+
+                return matchesText && matchesCat && matchesDate;
+            }).sort((a,b) => new Date(b.date) - new Date(a.date));
 
             document.getElementById('countDisplay').innerText = res.length;
 
@@ -454,8 +482,13 @@
                     <div class="j-title">${e.site} <span style="font-weight:400; color:var(--text-sec); font-size:14px">(${e.category})</span></div>
                     <div class="j-desc">${e.description}</div>
                     <div class="j-footer">
-                        ${pCount ? `<div class="badge blue"><i class="fas fa-camera"></i> ${pCount}</div>` : ''}
-                        ${uCount ? `<div class="badge"><i class="fas fa-history"></i> ${uCount}</div>` : ''}
+                        <div class="j-badges">
+                            ${pCount ? `<div class="badge blue"><i class="fas fa-camera"></i> ${pCount}</div>` : ''}
+                            ${uCount ? `<div class="badge"><i class="fas fa-history"></i> ${uCount}</div>` : ''}
+                        </div>
+                        <button class="btn-pdf-mini" onclick="event.stopPropagation(); exportPDF(${e.id})">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
                     </div>
                 </div>`;
             }).join('');
@@ -474,8 +507,7 @@
             document.getElementById('deleteBtn').classList.add('hidden');
             document.getElementById('timelineSection').classList.add('hidden');
 
-            const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-            document.getElementById('entryDate').value=d.toISOString().slice(0,16);
+            setNow('entryDate');
 
             renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
             openForm();
@@ -502,8 +534,12 @@
             document.getElementById('deleteBtn').classList.remove('hidden');
             document.getElementById('timelineSection').classList.remove('hidden');
             renderTimeline(e.updates||[]);
+
+            // Init Timeline Input
             tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
             document.getElementById('updateText').value='';
+            setNow('updateDate');
+
             openForm();
         }
 
@@ -566,12 +602,23 @@
         function addUpdate() {
             if(!curId) return;
             const txt = document.getElementById('updateText').value;
+            const date = document.getElementById('updateDate').value;
+
             if(!txt && tmpUp.length===0) return;
             const e = appData.entries.find(x => x.id === curId);
             if(!e.updates) e.updates = [];
-            e.updates.unshift({ id:Date.now(), date: new Date().toISOString(), text:txt, photos:[...tmpUp] });
+
+            // Utiliser la date choisie ou Maintenant
+            e.updates.unshift({
+                id:Date.now(),
+                date: date || new Date().toISOString(),
+                text:txt,
+                photos:[...tmpUp]
+            });
+
             saveToStorage();
             document.getElementById('updateText').value=''; tmpUp=[]; renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
+            setNow('updateDate');
             renderTimeline(e.updates);
         }
 
@@ -580,9 +627,10 @@
             if(!updates || updates.length === 0) { container.innerHTML = "<div style='font-size:13px;color:#aaa;padding:10px'>Aucun historique</div>"; return; }
             container.innerHTML = updates.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(u => {
                 const imgs = (u.photos||[]).map(p=>`<img src="${p}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #eee;margin-top:5px;margin-right:5px" onclick="window.open('${p}')">`).join('');
+                const d = new Date(u.date);
                 return `
                 <div class="t-item">
-                    <div class="t-date">${new Date(u.date).toLocaleString()} <i class="fas fa-trash" style="float:right; cursor:pointer; color:#FF3B30" onclick="delUp(${u.id})"></i></div>
+                    <div class="t-date">${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} <i class="fas fa-trash" style="float:right; cursor:pointer; color:#FF3B30" onclick="delUp(${u.id})"></i></div>
                     <div class="t-text"><div>${u.text}</div><div>${imgs}</div></div>
                 </div>`;
             }).join('');
@@ -592,6 +640,12 @@
             const e = appData.entries.find(x => x.id === curId);
             e.updates = e.updates.filter(u => u.id !== uid);
             saveToStorage(); renderTimeline(e.updates);
+        }
+
+        // --- UTILS ---
+        function setNow(id) {
+            const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById(id).value = now.toISOString().slice(0,16);
         }
 
         // --- SETTINGS ---
@@ -634,7 +688,7 @@
         }
 
         // --- PDF ---
-        function exportPDF() {
+        function exportPDF(singleId = null) {
             const doc = new window.jspdf.jsPDF();
             const title = appData.settings.pdfTitle || "Rapport";
 
@@ -644,7 +698,32 @@
             else { doc.text(title,10,22); }
 
             let y=45;
-            appData.entries.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e => {
+
+            // FILTRAGE : Soit tout (filtré par la liste), soit un seul ID
+            let dataToExport = [];
+            if(singleId) {
+                dataToExport = appData.entries.filter(e => e.id === singleId);
+            } else {
+                // Utiliser les filtres actuels de la liste
+                const search = document.getElementById('searchInput').value.toLowerCase();
+                const cat = document.getElementById('filterCategory').value;
+                const dStart = document.getElementById('dateStart').value;
+                const dEnd = document.getElementById('dateEnd').value;
+
+                dataToExport = appData.entries.filter(e => {
+                    const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
+                    const matchesCat = (cat === 'All' || e.category === cat);
+                    let matchesDate = true;
+                    const entryDate = e.date.substring(0,10);
+                    if(dStart && entryDate < dStart) matchesDate = false;
+                    if(dEnd && entryDate > dEnd) matchesDate = false;
+                    return matchesText && matchesCat && matchesDate;
+                }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+            }
+
+            if(dataToExport.length === 0) return alert("Aucune donnée à exporter");
+
+            dataToExport.forEach(e => {
                 if(y>250){doc.addPage();y=20;}
                 doc.setFillColor(242, 242, 247); doc.rect(10,y,190,8,'F');
                 doc.setTextColor(0); doc.setFontSize(11); doc.setFont("helvetica","bold");
@@ -653,22 +732,44 @@
                 doc.setFont("helvetica","normal"); doc.setFontSize(10);
                 const lines = doc.splitTextToSize(e.description, 180);
                 doc.text(lines, 12, y); y += (lines.length*5)+5;
+
+                // Photos principales
                 if(e.photos?.length) {
                     let x=12; e.photos.forEach(p=>{
                         if(x>170){x=12;y+=35;} if(y>250){doc.addPage();y=20;}
                         try{doc.addImage(p,'JPEG',x,y,30,30);x+=35;}catch(err){}
                     }); y+=35;
                 }
+
+                // Historique
                 if(e.updates?.length) {
-                    e.updates.forEach(u=>{
+                    e.updates.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(u=>{
                        if(y>270){doc.addPage();y=20;}
                        doc.setTextColor(100); doc.setFontSize(9);
-                       doc.text(`• ${new Date(u.date).toLocaleDateString()}: ${u.text}`, 15, y); y+=5;
+                       const d = new Date(u.date);
+                       doc.text(`• ${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}: ${u.text}`, 15, y); y+=5;
+
+                       // Photos Historique (Correction : Ajout de cette boucle)
+                       if(u.photos && u.photos.length > 0) {
+                           let uImgX = 20;
+                           if(y + 25 > 280) { doc.addPage(); y=20; }
+                           u.photos.forEach(p => {
+                               try {
+                                   if(uImgX > 180) { uImgX = 20; y+=25; }
+                                   doc.addImage(p, 'JPEG', uImgX, y, 20, 20);
+                                   uImgX += 25;
+                               } catch(e){}
+                           });
+                           y += 25;
+                       }
                     }); y+=5;
                 }
                 doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
             });
-            doc.save("rapport.pdf");
+
+            // Nom fichier dynamique
+            const fileName = singleId ? "Fiche_Chantier.pdf" : "Rapport_Complet.pdf";
+            doc.save(fileName);
         }
         function exportJSON() {
             const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData));
