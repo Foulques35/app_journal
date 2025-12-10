@@ -55,11 +55,16 @@
         .content { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 15px; -webkit-overflow-scrolling: touch; padding-bottom: 100px; }
 
         /* --- UI ELEMENTS --- */
-        .search-container { background: #e3e3e8; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; }
-        .search-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .search-container { background: #e3e3e8; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+
+        .search-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.7); padding: 8px; border-radius: 8px; }
         .search-bar input { border: none; background: transparent; font-size: 17px; width: 100%; outline: none; }
-        .date-filter-row { display: flex; gap: 10px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; }
-        .date-filter-row input { background: rgba(255,255,255,0.5); border: none; border-radius: 6px; padding: 4px 8px; font-size: 13px; width: 100%; color: var(--text-main); }
+
+        .filter-row-dual { display: flex; gap: 10px; margin-bottom: 10px; }
+        .filter-select { flex: 1; border: none; background: white; border-radius: 8px; padding: 8px; font-size: 14px; font-weight: 600; color: var(--primary); text-align: center; appearance: none; -webkit-appearance: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+        .date-filter-row { display: flex; gap: 10px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; }
+        .date-filter-row input { background: rgba(255,255,255,0.5); border: none; border-radius: 6px; padding: 6px 8px; font-size: 13px; width: 100%; color: var(--text-main); text-align: center; }
 
         .journal-card { background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
         .journal-card:active { background: #f2f2f2; transform: scale(0.98); transition: 0.1s; }
@@ -151,7 +156,7 @@
             <button class="nav-btn icon" onclick="toggleExportMenu()"><i class="fas fa-share-square"></i></button>
         </div>
         <div id="exportMenu" class="dropdown-menu">
-            <button class="menu-item" onclick="exportPDF(null);toggleExportMenu()"><i class="fas fa-file-pdf" style="color:#FF3B30"></i> Rapport Complet</button>
+            <button class="menu-item" onclick="exportPDF(null);toggleExportMenu()"><i class="fas fa-file-pdf" style="color:#FF3B30"></i> Rapport (Visible)</button>
             <button class="menu-item" onclick="exportJSON();toggleExportMenu()"><i class="fas fa-file-code" style="color:#34C759"></i> Sauvegarde JSON</button>
             <label class="menu-item" style="cursor:pointer; color:var(--primary)">
                 <i class="fas fa-upload"></i> Restaurer Sauvegarde
@@ -163,10 +168,21 @@
                 <div class="search-bar">
                     <i class="fas fa-search" style="color:#8E8E93"></i>
                     <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
-                    <select id="filterCategory" onchange="renderList()" style="width:auto; border:none; background:none; color:var(--primary); font-weight:600; font-size:15px;">
-                        <option value="All">Tout</option>
+                </div>
+                <!-- FILTRES DUAL -->
+                <div class="filter-row-dual">
+                    <select id="filterCategory" onchange="renderList()" class="filter-select">
+                        <option value="All">Toutes Rubriques</option>
+                    </select>
+                    <select id="filterStatus" onchange="renderList()" class="filter-select">
+                        <option value="All">Tous Statuts</option>
+                        <option value="todo">À faire</option>
+                        <option value="doing">En cours</option>
+                        <option value="blocked">Bloqué</option>
+                        <option value="done">Terminé</option>
                     </select>
                 </div>
+
                 <div class="date-filter-row">
                     <input type="date" id="dateStart" onchange="renderList()" placeholder="Du...">
                     <span style="color:#8E8E93; font-size:12px">au</span>
@@ -330,7 +346,7 @@
                     </div>
                 </div>
             </div>
-            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 17.0 (Color Picker)</div>
+            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 18.0 (Filtre Statut)</div>
             <div style="height:100px"></div>
         </div>
     </div>
@@ -386,7 +402,7 @@
             sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
             categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
             pdfTitle: "Rapport de Chantier",
-            pdfColor: "#007AFF", // Default Apple Blue
+            pdfColor: "#007AFF",
             logo: null
         };
         let appData = { settings: {...defaultSettings}, entries: [] };
@@ -397,7 +413,7 @@
         let editingUpdateId = null;
 
         function initApp() {
-            const raw = localStorage.getItem('journal_v14'); // Keep V14 key for now
+            const raw = localStorage.getItem('journal_v14');
             if (raw) {
                 appData = JSON.parse(raw);
                 appData.settings = {...defaultSettings, ...appData.settings};
@@ -474,17 +490,21 @@
         function renderList() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
+            const status = document.getElementById('filterStatus').value;
             const dStart = document.getElementById('dateStart').value;
             const dEnd = document.getElementById('dateEnd').value;
 
             const res = appData.entries.filter(e => {
                 const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
                 const matchesCat = (cat === 'All' || e.category === cat);
+                const matchesStatus = (status === 'All' || (e.status||'todo') === status);
+
                 let matchesDate = true;
                 const entryDate = e.date.substring(0,10);
                 if(dStart && entryDate < dStart) matchesDate = false;
                 if(dEnd && entryDate > dEnd) matchesDate = false;
-                return matchesText && matchesCat && matchesDate;
+
+                return matchesText && matchesCat && matchesStatus && matchesDate;
             }).sort((a,b) => new Date(b.date) - new Date(a.date));
 
             document.getElementById('countDisplay').innerText = res.length;
@@ -743,7 +763,7 @@
             const opts = (arr) => arr.map(x => `<option value="${x}">${x}</option>`).join('');
             document.getElementById('entrySite').innerHTML = '<option value="" disabled selected>Choisir...</option>' + opts(appData.settings.sites);
             document.getElementById('entryCategory').innerHTML = opts(appData.settings.categories);
-            document.getElementById('filterCategory').innerHTML = '<option value="All">Tout</option>' + opts(appData.settings.categories);
+            document.getElementById('filterCategory').innerHTML = '<option value="All">Toutes Rubriques</option>' + opts(appData.settings.categories);
         }
 
         function renderChips(id, arr, type) {
@@ -797,7 +817,6 @@
             const doc = new window.jspdf.jsPDF();
             const title = appData.settings.pdfTitle || "Rapport";
 
-            // USE CUSTOM COLOR
             const colorHex = appData.settings.pdfColor || "#007AFF";
             doc.setFillColor(colorHex);
             doc.rect(0,0,210,35,'F');
@@ -814,17 +833,21 @@
             } else {
                 const search = document.getElementById('searchInput').value.toLowerCase();
                 const cat = document.getElementById('filterCategory').value;
+                const status = document.getElementById('filterStatus').value;
                 const dStart = document.getElementById('dateStart').value;
                 const dEnd = document.getElementById('dateEnd').value;
 
                 dataToExport = appData.entries.filter(e => {
                     const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
                     const matchesCat = (cat === 'All' || e.category === cat);
+                    const matchesStatus = (status === 'All' || (e.status||'todo') === status);
+
                     let matchesDate = true;
                     const entryDate = e.date.substring(0,10);
                     if(dStart && entryDate < dStart) matchesDate = false;
                     if(dEnd && entryDate > dEnd) matchesDate = false;
-                    return matchesText && matchesCat && matchesDate;
+
+                    return matchesText && matchesCat && matchesStatus && matchesDate;
                 }).sort((a,b)=>new Date(b.date)-new Date(a.date));
             }
 
@@ -839,7 +862,6 @@
 
                 doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(80);
 
-                // --- FIX: USE TEXT HELPERS ---
                 let metaText = `Statut: ${getStatusLabel(e.status)}`;
                 if(e.weather) metaText += ` | Météo: ${getWeatherLabel(e.weather)}`;
                 if(e.temp) metaText += ` ${e.temp}°C`;
@@ -865,7 +887,6 @@
                        doc.setTextColor(50); doc.setFontSize(9);
                        const d = new Date(u.date);
 
-                       // --- FIX: USE TEXT HELPER FOR UPDATES ---
                        let uMeta = "";
                        if(u.weather) uMeta += ` [${getWeatherLabel(u.weather)}]`;
                        if(u.temp) uMeta += ` ${u.temp}°C`;
