@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Journal">
     <meta name="theme-color" content="#f2f2f7">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
     <title>Journal Chantier</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -326,7 +326,7 @@
                     </div>
                 </div>
             </div>
-            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 15.0 (Import & Edit)</div>
+            <div style="text-align:center; font-size:12px; color:var(--text-sec); margin-top:20px">Version 16.0 (PDF Correctif)</div>
             <div style="height:100px"></div>
         </div>
     </div>
@@ -386,11 +386,8 @@
         };
         let appData = { settings: {...defaultSettings}, entries: [] };
 
-        // Globals for editing state
         let currentStatus = 'todo';
         let currentWeather = null;
-
-        // Timeline Editing Globals
         let currentUpdateWeather = null;
         let editingUpdateId = null;
 
@@ -421,7 +418,6 @@
                     if(data && data.entries) {
                         if(confirm("Attention: Cela va remplacer les données actuelles. Continuer ?")) {
                             appData = data;
-                            // Ensure settings exist
                             if(!appData.settings) appData.settings = {...defaultSettings};
                             saveToStorage();
                             initApp();
@@ -641,7 +637,6 @@
             setNow('updateDate');
             renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
 
-            // Visual reset
             document.getElementById('updateFormLabel').innerText = "Ajouter un suivi";
             document.getElementById('updateFormBox').style.background = "#f0f9ff";
             document.getElementById('btnSaveUpdate').innerHTML = '<i class="fas fa-arrow-up"></i>';
@@ -660,7 +655,6 @@
             tmpUp = [...(u.photos || [])];
             renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
 
-            // Visual feedback
             document.getElementById('updateFormLabel').innerText = "Modifier le suivi";
             document.getElementById('updateFormBox').style.background = "#fffde7";
             document.getElementById('btnSaveUpdate').innerHTML = '<i class="fas fa-check"></i>';
@@ -672,7 +666,7 @@
             const txt = document.getElementById('updateText').value;
             const date = document.getElementById('updateDate').value;
 
-            if(!txt && tmpUp.length===0 && !editingUpdateId) return; // Allow empty text if editing existing with photos
+            if(!txt && tmpUp.length===0 && !editingUpdateId) return;
 
             const e = appData.entries.find(x => x.id === curId);
             if(!e.updates) e.updates = [];
@@ -729,7 +723,6 @@
             if(!confirm("Supprimer ?")) return;
             const e = appData.entries.find(x => x.id === curId);
             e.updates = e.updates.filter(u => u.id !== uid);
-            // If deleting the one being edited, reset form
             if(editingUpdateId === uid) resetUpdateForm();
             saveToStorage(); renderTimeline(e.updates);
         }
@@ -778,6 +771,17 @@
             lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:cover">` : ``;
         }
 
+        // --- PDF HELPERS ---
+        function getStatusLabel(s) {
+            const map = { 'todo': 'À faire', 'doing': 'En cours', 'blocked': 'Bloqué', 'done': 'Terminé' };
+            return map[s] || s || 'N/A';
+        }
+
+        function getWeatherLabel(w) {
+            const map = { 'sun': 'Soleil', 'cloud': 'Nuageux', 'rain': 'Pluie', 'snow': 'Neige' };
+            return map[w] || '';
+        }
+
         // --- PDF ---
         function exportPDF(singleId = null) {
             const doc = new window.jspdf.jsPDF();
@@ -817,14 +821,15 @@
                 doc.setFillColor(242, 242, 247); doc.rect(10,y,190,12,'F');
                 doc.setTextColor(0); doc.setFontSize(11); doc.setFont("helvetica","bold");
 
-                // Header ligne 1: Date | Site
                 doc.text(`${new Date(e.date).toLocaleDateString()} | ${e.site}`, 12, y+6);
 
-                // Header ligne 2: Météo | Temp | Statut
                 doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(80);
-                let metaText = `Statut: ${e.status || 'N/A'}`;
-                if(e.weather) metaText += ` | Météo: ${getWeatherIcon(e.weather)}`;
+
+                // --- FIX: USE TEXT HELPERS ---
+                let metaText = `Statut: ${getStatusLabel(e.status)}`;
+                if(e.weather) metaText += ` | Météo: ${getWeatherLabel(e.weather)}`;
                 if(e.temp) metaText += ` ${e.temp}°C`;
+
                 doc.text(metaText, 12, y+10);
 
                 y+=16;
@@ -846,8 +851,9 @@
                        doc.setTextColor(50); doc.setFontSize(9);
                        const d = new Date(u.date);
 
+                       // --- FIX: USE TEXT HELPER FOR UPDATES ---
                        let uMeta = "";
-                       if(u.weather) uMeta += ` [${getWeatherIcon(u.weather)}]`;
+                       if(u.weather) uMeta += ` [${getWeatherLabel(u.weather)}]`;
                        if(u.temp) uMeta += ` ${u.temp}°C`;
 
                        doc.text(`• ${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}${uMeta}: ${u.text}`, 15, y); y+=5;
