@@ -3,62 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Journal">
     <meta name="theme-color" content="#f2f2f7">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
     <title>Journal Chantier</title>
 
-    <style>
-        :root {
-            --primary: #007AFF;
-            --bg-app: #F2F2F7;
-            --bg-card: #FFFFFF;
-            --text-main: #000000;
-            --text-sec: #8E8E93;
-            --border: #C6C6C8;
-            --danger: #FF3B30;
-            --success: #34C759;
-            --warning: #FF9500;
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
-        }
+    <script src="jspdf.umd.min.js"></script>
 
+    <style>
+        /* --- VOS STYLES (Identiques) --- */
+        :root { --primary: #007AFF; --bg-app: #F2F2F7; --bg-card: #FFFFFF; --text-main: #000000; --text-sec: #8E8E93; --border: #C6C6C8; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-app); color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
         * { box-sizing: border-box; }
         input, textarea, select { -webkit-user-select: text; user-select: text; }
-
-        /* --- SVG ICONS --- */
         .icon { width: 16px; height: 16px; fill: currentColor; display: inline-block; vertical-align: middle; }
         .icon-lg { width: 20px; height: 20px; }
         .icon-xl { width: 24px; height: 24px; }
-
-        /* --- VUES --- */
         .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg-app); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); padding-top: var(--safe-top); padding-bottom: calc(55px + var(--safe-bottom)); z-index: 10; }
         .view.hidden-right { transform: translateX(100%); pointer-events: none; }
         .view.active { transform: translateX(0); }
         .view.hidden-left { transform: translateX(-30%); opacity: 0.8; }
-
-        /* --- MODAL --- */
         .view-modal { position: fixed; z-index: 9999; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); padding-bottom: var(--safe-bottom); background: var(--bg-app); border-top-left-radius: 15px; border-top-right-radius: 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
         .view-modal.active { transform: translateY(0); }
         .modal-handle { width: 36px; height: 4px; background: #C5C5C7; border-radius: 3px; margin: 6px auto 0 auto; }
-
-        /* --- HEADER --- */
         .nav-bar { height: 44px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; background: rgba(242, 242, 247, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 50; }
         .nav-title { font-size: 16px; font-weight: 600; text-align: center; flex-grow: 1; }
         .nav-btn { color: var(--primary); font-size: 15px; background: none; border: none; cursor: pointer; padding: 8px 4px; display: flex; align-items: center; gap: 4px; }
         .nav-btn.danger { color: var(--danger); }
         .nav-btn.action-primary { background: rgba(0, 122, 255, 0.1); color: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s; }
         .nav-btn.action-primary:active { background: rgba(0, 122, 255, 0.2); }
-
-        /* --- CONTENT --- */
         .content { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; -webkit-overflow-scrolling: touch; padding-bottom: 90px; }
-
-        /* --- UI ELEMENTS --- */
         .search-container { background: #e3e3e8; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; }
         .search-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; background: rgba(255,255,255,0.7); padding: 6px 8px; border-radius: 8px; }
         .search-bar input { border: none; background: transparent; font-size: 15px; width: 100%; outline: none; padding: 0; }
@@ -66,27 +43,21 @@
         .filter-select { flex: 1; border: none; background: white; border-radius: 7px; padding: 6px; font-size: 13px; font-weight: 500; color: var(--primary); text-align: center; appearance: none; -webkit-appearance: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .date-filter-row { display: flex; gap: 8px; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; }
         .date-filter-row input { background: rgba(255,255,255,0.5); border: none; border-radius: 6px; padding: 4px 6px; font-size: 12px; width: 100%; color: var(--text-main); text-align: center; }
-
         .journal-card { background: var(--bg-card); border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: relative; }
         .journal-card:active { background: #f2f2f2; transform: scale(0.98); transition: 0.1s; }
-
         .j-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; color: var(--text-sec); }
         .j-title { font-size: 16px; font-weight: 600; margin-bottom: 3px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .status-todo { background: #8E8E93; }
         .status-doing { background: var(--primary); }
         .status-blocked { background: var(--warning); }
         .status-done { background: var(--success); }
-
         .j-desc { font-size: 14px; color: #3A3A3C; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .j-footer { margin-top: 8px; display: flex; justify-content: space-between; align-items: flex-end; }
         .j-badges { display: flex; gap: 8px; font-size: 11px; color: var(--text-sec); align-items: center; }
         .badge { background: #E5E5EA; padding: 2px 6px; border-radius: 5px; display: flex; align-items: center; gap: 3px; font-weight: 500; }
         .badge.blue { color: var(--primary); background: rgba(0,122,255,0.1); }
         .btn-pdf-mini { background: rgba(255, 59, 48, 0.1); color: var(--danger); border: 1px solid rgba(255, 59, 48, 0.2); padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 3px; }
-
-        /* --- FORM --- */
         .ios-list { background: var(--bg-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
         .ios-item { padding: 10px 14px; border-bottom: 1px solid #E5E5EA; display: flex; flex-direction: column; gap: 4px; }
         .ios-item:last-child { border-bottom: none; }
@@ -94,12 +65,9 @@
         .ios-input { font-size: 16px; border: none; width: 100%; outline: none; background: transparent; padding: 3px 0; font-family: inherit; }
         select.ios-input { background-color: transparent; }
         textarea.ios-input { min-height: 80px; resize: none; line-height: 1.4; }
-
-        /* Weather & Status */
         .weather-row { display: flex; gap: 8px; margin-top: 4px; }
         .weather-opt { flex: 1; text-align: center; padding: 5px; border: 1px solid #E5E5EA; border-radius: 7px; cursor: pointer; color: #8E8E93; transition: 0.2s; font-size: 16px; }
         .weather-opt.selected { background: rgba(0,122,255,0.1); border-color: var(--primary); color: var(--primary); }
-
         .status-pill-container { display: flex; gap: 6px; margin-top: 4px; }
         .status-pill { flex: 1; text-align: center; padding: 6px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; opacity: 0.4; transition: 0.2s; border: 1px solid transparent; }
         .status-pill.s-todo { background: #E5E5EA; color: #333; }
@@ -107,14 +75,11 @@
         .status-pill.s-blocked { background: rgba(255,149,0,0.2); color: var(--warning); }
         .status-pill.s-done { background: rgba(52,199,89,0.2); color: var(--success); }
         .status-pill.active { opacity: 1; transform: scale(1.02); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-color: currentColor; }
-
         .h-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
         .photo-thumb { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; overflow: hidden; position: relative; background: #eee; }
         .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .btn-del-photo { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .add-photo-btn { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; border: 2px dashed #C6C6C8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: 11px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.5); }
-
-        /* Timeline */
         .timeline { margin-left: 18px; border-left: 2px solid #E5E5EA; padding-left: 18px; }
         .t-item { position: relative; padding-bottom: 20px; transition: background 0.2s; }
         .t-item.editing { background: #fffde7; padding: 8px; border-radius: 8px; margin-left: -8px; border: 1px dashed orange; }
@@ -122,32 +87,23 @@
         .t-date { font-size: 11px; color: var(--text-sec); margin-bottom: 4px; display: flex; justify-content: space-between; }
         .t-text { font-size: 15px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #E5E5EA; line-height: 1.35; }
         .t-actions { display: flex; gap: 12px; }
-
-        /* Settings */
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: white; border-bottom: 1px solid #E5E5EA; }
         .setting-group { margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
         .setting-header { padding: 0 0 6px 14px; font-size: 12px; color: var(--text-sec); text-transform: uppercase; }
-
-        /* Menu */
         .dropdown-menu { position: absolute; top: 50px; right: 12px; width: 230px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 200; display: none; transform-origin: top right; border: 1px solid rgba(0,0,0,0.1); }
         .dropdown-menu.show { display: block; animation: popIn 0.2s; }
         .menu-item { padding: 12px 16px; border-bottom: 1px solid #E5E5EA; display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--text-main); background: none; border: none; width: 100%; text-align: left; }
         .menu-item:last-child { border-bottom: none; }
         @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
-
-        /* Tab Bar (Compact) */
         .tab-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: calc(50px + var(--safe-bottom)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 6px; z-index: 100; }
         .tab-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); text-decoration: none; font-size: 9px; font-weight: 500; background: none; border: none; cursor: pointer; width: 60px; -webkit-tap-highlight-color: transparent; }
         .tab-item.active { color: var(--primary); }
         .tab-item.big-add { transform: translateY(-18px); }
         .tab-item.big-add div { width: 48px; height: 48px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,122,255,0.4); }
-
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
-
-    <!-- ICONS SVG -->
     <svg style="display:none">
         <symbol id="icon-search" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -167,7 +123,6 @@
         <symbol id="icon-up" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     </svg>
 
-    <!-- === VIEW 1: LISTE === -->
     <div id="viewList" class="view active">
         <div class="nav-bar">
             <div style="width:32px"></div>
@@ -216,7 +171,6 @@
         </div>
     </div>
 
-    <!-- === VIEW 2: FORMULAIRE === -->
     <div id="viewForm" class="view hidden-right" style="z-index: 15;">
         <div class="nav-bar">
             <button class="nav-btn" onclick="goBack()">
@@ -326,7 +280,6 @@
         </div>
     </div>
 
-    <!-- === VIEW 3: SETTINGS === -->
     <div id="viewSettings" class="view view-modal">
         <div class="modal-handle"></div>
         <div class="nav-bar" style="background:transparent; border:none;">
@@ -383,13 +336,12 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 26.0
+                Créé par Maxime Bousquet - Licence MIT<br>Version 26.0 (Offline)
             </div>
             <div style="height:100px"></div>
         </div>
     </div>
 
-    <!-- === TAB BAR === -->
     <div class="tab-bar">
         <button class="tab-item active" onclick="goHome()">
             <svg class="icon-lg" style="fill:none; stroke:currentColor; stroke-width:2"><use href="#icon-list"/></svg>
@@ -405,7 +357,7 @@
     </div>
 
     <script>
-        // --- NAVIGATION ---
+        // --- NAVIGATION & INIT ---
         function goHome() {
             document.getElementById('viewList').classList.remove('hidden-left');
             document.getElementById('viewList').classList.add('active');
@@ -413,20 +365,17 @@
             document.getElementById('viewForm').classList.add('hidden-right');
             closeSettings();
         }
-
         function goBack() { goHome(); }
-
         function openForm() {
             document.getElementById('viewList').classList.remove('active');
             document.getElementById('viewList').classList.add('hidden-left');
             document.getElementById('viewForm').classList.remove('hidden-right');
             document.getElementById('viewForm').classList.add('active');
         }
-
         function openSettings() { document.getElementById('viewSettings').classList.add('active'); }
         function closeSettings() { document.getElementById('viewSettings').classList.remove('active'); }
-
         function toggleExportMenu() { document.getElementById('exportMenu').classList.toggle('show'); }
+
         document.addEventListener('click', function(event) {
             const menu = document.getElementById('exportMenu');
             const btn = document.querySelector('.nav-btn.action-primary');
@@ -435,7 +384,7 @@
             }
         });
 
-        // --- DATA ---
+        // --- DATA & STORAGE ---
         const defaultSettings = {
             sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
             categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
@@ -469,7 +418,6 @@
 
         function saveToStorage() { localStorage.setItem('journal_v14', JSON.stringify(appData)); }
 
-        // --- IMPORT JSON ---
         function importJSON(input) {
             const file = input.files[0];
             if(!file) return;
@@ -492,13 +440,12 @@
             input.value = '';
         }
 
-        // --- UI HELPERS ---
+        // --- HELPERS ---
         function setStatus(s) {
             currentStatus = s;
             document.querySelectorAll('#statusSelector .status-pill').forEach(el => el.classList.remove('active'));
             document.querySelector(`#statusSelector .status-pill.s-${s}`).classList.add('active');
         }
-
         function setWeather(w) {
             currentWeather = w;
             document.querySelectorAll('#weatherSelector .weather-opt').forEach(el => el.classList.remove('selected'));
@@ -508,7 +455,6 @@
                 if(idx >= 0) document.querySelectorAll('#weatherSelector .weather-opt')[idx].classList.add('selected');
             }
         }
-
         function setUpdateWeather(w) {
             currentUpdateWeather = w;
             document.querySelectorAll('#updateWeatherSelector .weather-opt').forEach(el => el.classList.remove('selected'));
@@ -518,13 +464,12 @@
                 if(idx >= 0) document.querySelectorAll('#updateWeatherSelector .weather-opt')[idx].classList.add('selected');
             }
         }
-
         function getWeatherIcon(w) {
             if(w=='sun') return '☀️'; if(w=='cloud') return '☁️'; if(w=='rain') return '🌧️'; if(w=='snow') return '❄️';
             return '';
         }
 
-        // --- LIST & FILTER ---
+        // --- RENDER LIST ---
         function renderList() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
@@ -536,12 +481,10 @@
                 const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
                 const matchesCat = (cat === 'All' || e.category === cat);
                 const matchesStatus = (status === 'All' || (e.status||'todo') === status);
-
                 let matchesDate = true;
                 const entryDate = e.date.substring(0,10);
                 if(dStart && entryDate < dStart) matchesDate = false;
                 if(dEnd && entryDate > dEnd) matchesDate = false;
-
                 return matchesText && matchesCat && matchesStatus && matchesDate;
             }).sort((a,b) => new Date(b.date) - new Date(a.date));
 
@@ -581,7 +524,7 @@
             }).join('');
         }
 
-        // --- CRUD MAIN ---
+        // --- ENTRY CRUD ---
         let curId = null;
         let tmpMain=[], tmpUp=[];
 
@@ -593,10 +536,8 @@
             document.getElementById('entryProgress').value = 0; document.getElementById('progDisplay').innerText="0%";
             document.getElementById('entryTemp').value = '';
             setStatus('todo'); setWeather(null);
-
             document.getElementById('deleteBtn').classList.add('hidden');
             document.getElementById('timelineSection').classList.add('hidden');
-
             setNow('entryDate');
             renderGal('mainPhotoGallery', tmpMain, 'tmpMain');
             openForm();
@@ -605,7 +546,6 @@
         function loadEntry(id) {
             curId = id;
             const e = appData.entries.find(x => x.id === id);
-
             document.getElementById('formTitle').innerText = "Détails";
             document.getElementById('entryDate').value = e.date;
             document.getElementById('entryCategory').value = e.category;
@@ -613,7 +553,6 @@
             document.getElementById('progDisplay').innerText = e.progress+'%';
             document.getElementById('entryDesc').value = e.description;
             document.getElementById('entryTemp').value = e.temp || '';
-
             setStatus(e.status || 'todo');
             setWeather(e.weather || null);
 
@@ -627,7 +566,6 @@
             document.getElementById('deleteBtn').classList.remove('hidden');
             document.getElementById('timelineSection').classList.remove('hidden');
             renderTimeline(e.updates||[]);
-
             resetUpdateForm();
             openForm();
         }
@@ -635,7 +573,6 @@
         function saveEntry() {
             const site = document.getElementById('entrySite').value;
             if(!site) return alert("Choisissez un lieu");
-
             const entry = {
                 id: curId || Date.now(),
                 date: document.getElementById('entryDate').value,
@@ -649,10 +586,8 @@
                 photos: [...tmpMain],
                 updates: curId ? appData.entries.find(e=>e.id===curId).updates : []
             };
-
             if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
             else { appData.entries.unshift(entry); curId = entry.id; }
-
             saveToStorage(); goHome(); renderList();
         }
 
@@ -663,7 +598,7 @@
             }
         }
 
-        // --- MEDIA ---
+        // --- IMAGES ---
         function resizeImage(file, max=800) {
             return new Promise(r => {
                 const reader = new FileReader();
@@ -681,17 +616,15 @@
                 reader.readAsDataURL(file);
             });
         }
-
         async function handleMainPhotos(inp) { if(inp.files) for(let f of inp.files) tmpMain.push(await resizeImage(f)); renderGal('mainPhotoGallery', tmpMain, 'tmpMain'); inp.value=''; }
         async function handleUpdatePhotos(inp) { if(inp.files) for(let f of inp.files) tmpUp.push(await resizeImage(f)); renderGal('updatePhotoPreview', tmpUp, 'tmpUp'); inp.value=''; }
-
         function renderGal(id, arr, varName) {
             document.getElementById(id).innerHTML = arr.map((p,i) =>
                 `<div class="photo-thumb"><img src="${p}" onclick="window.open('${p}')"><button class="btn-del-photo" onclick="${varName}.splice(${i},1);renderGal('${id}',${varName},'${varName}')">×</button></div>`
             ).join('');
         }
 
-        // --- TIMELINE CRUD ---
+        // --- TIMELINE ---
         function resetUpdateForm() {
             tmpUp = [];
             editingUpdateId = null;
@@ -700,17 +633,14 @@
             setUpdateWeather(null);
             setNow('updateDate');
             renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
-
             document.getElementById('updateFormLabel').innerText = "Ajouter un suivi";
             document.getElementById('updateFormBox').style.background = "#f0f9ff";
             document.getElementById('btnSaveUpdate').innerHTML = '<svg class="icon" style="fill:none;stroke:currentColor;stroke-width:3"><use href="#icon-up"/></svg>';
         }
-
         function editUpdate(uid) {
             const e = appData.entries.find(x => x.id === curId);
             const u = e.updates.find(up => up.id === uid);
             if(!u) return;
-
             editingUpdateId = uid;
             document.getElementById('updateText').value = u.text;
             document.getElementById('updateDate').value = u.date;
@@ -718,48 +648,39 @@
             setUpdateWeather(u.weather || null);
             tmpUp = [...(u.photos || [])];
             renderGal('updatePhotoPreview', tmpUp, 'tmpUp');
-
             document.getElementById('updateFormLabel').innerText = "Modifier le suivi";
             document.getElementById('updateFormBox').style.background = "#fffde7";
             document.getElementById('btnSaveUpdate').innerHTML = '<svg class="icon" style="fill:none;stroke:currentColor;stroke-width:3"><use href="#icon-check"/></svg>';
             document.getElementById('updateText').focus();
         }
-
         function saveUpdate() {
             if(!curId) return;
             const txt = document.getElementById('updateText').value;
             const date = document.getElementById('updateDate').value;
             if(!txt && tmpUp.length===0 && !editingUpdateId) return;
-
             const e = appData.entries.find(x => x.id === curId);
             if(!e.updates) e.updates = [];
-
             const updateObj = {
                 id: editingUpdateId || Date.now(),
                 date: date || new Date().toISOString(),
                 text: txt, weather: currentUpdateWeather, temp: document.getElementById('updateTemp').value,
                 photos: [...tmpUp]
             };
-
             if(editingUpdateId) {
                 const idx = e.updates.findIndex(u => u.id === editingUpdateId);
                 if(idx >= 0) e.updates[idx] = updateObj;
             } else { e.updates.unshift(updateObj); }
-
             saveToStorage(); resetUpdateForm(); renderTimeline(e.updates);
         }
-
         function renderTimeline(updates) {
             const container = document.getElementById('timelineList');
             if(!updates || updates.length === 0) { container.innerHTML = "<div style='font-size:13px;color:#aaa;padding:10px'>Aucun historique</div>"; return; }
-
             container.innerHTML = updates.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(u => {
                 const imgs = (u.photos||[]).map(p=>`<img src="${p}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #eee;margin-top:5px;margin-right:5px" onclick="window.open('${p}')">`).join('');
                 const d = new Date(u.date);
                 let metaHtml = '';
                 if(u.weather) metaHtml += `<span style="margin-right:5px">${getWeatherIcon(u.weather)}</span>`;
                 if(u.temp) metaHtml += `<span style="color:#666; font-size:12px">${u.temp}°C</span>`;
-
                 return `
                 <div class="t-item ${editingUpdateId === u.id ? 'editing' : ''}">
                     <div class="t-date">
@@ -774,7 +695,6 @@
                 </div>`;
             }).join('');
         }
-
         function delUp(uid) {
             if(!confirm("Supprimer ?")) return;
             const e = appData.entries.find(x => x.id === curId);
@@ -783,19 +703,17 @@
             saveToStorage(); renderTimeline(e.updates);
         }
 
-        // --- UTILS & SETTINGS ---
+        // --- UTILS ---
         function setNow(id) {
             const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById(id).value = now.toISOString().slice(0,16);
         }
-
         function updateDropdowns() {
             const opts = (arr) => arr.map(x => `<option value="${x}">${x}</option>`).join('');
             document.getElementById('entrySite').innerHTML = '<option value="" disabled selected>Choisir...</option>' + opts(appData.settings.sites);
             document.getElementById('entryCategory').innerHTML = opts(appData.settings.categories);
             document.getElementById('filterCategory').innerHTML = '<option value="All">Toutes Rubriques</option>' + opts(appData.settings.categories);
         }
-
         function renderChips(id, arr, type) {
             document.getElementById(id).innerHTML = arr.map((item,i) => `
                 <div style="background:#f2f2f7; padding:5px 10px; border-radius:15px; font-size:13px; display:flex; align-items:center; gap:5px">
@@ -803,7 +721,6 @@
                 </div>
             `).join('');
         }
-
         function addSetting(type) {
             const val = document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value.trim();
             if(val && !appData.settings[type].includes(val)) {
@@ -818,7 +735,6 @@
                 saveToStorage(); renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
             }
         }
-
         function savePdfSettings() {
             appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value;
             appData.settings.pdfColor = document.getElementById('pdfColorInput').value;
@@ -832,36 +748,20 @@
             lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:cover">` : ``;
         }
 
-        // --- PDF HELPERS ---
+        // --- EXPORT PDF ---
         function getStatusLabel(s) { return { 'todo': 'À faire', 'doing': 'En cours', 'blocked': 'Bloqué', 'done': 'Terminé' }[s] || s || 'N/A'; }
         function getWeatherLabel(w) { return { 'sun': 'Soleil', 'cloud': 'Nuageux', 'rain': 'Pluie', 'snow': 'Neige' }[w] || ''; }
 
-        // --- PDF DYNAMIC LOADER ---
-        async function loadPdfLib() {
-            if (window.jspdf) return true;
-            return new Promise(resolve => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-                script.onload = () => resolve(true);
-                script.onerror = () => resolve(false);
-                document.body.appendChild(script);
-            });
-        }
-
         async function exportPDF(singleId = null) {
-            const loaded = await loadPdfLib();
-            if (!loaded) {
-                alert("Connexion Internet requise pour activer la création de PDF (une seule fois).");
-                return;
-            }
+            // Utilisation directe de la version locale
+            const { jsPDF } = window.jspdf;
 
-            const doc = new window.jspdf.jsPDF();
+            const doc = new jsPDF();
             const title = appData.settings.pdfTitle || "Rapport";
             const colorHex = appData.settings.pdfColor || "#007AFF";
             doc.setFillColor(colorHex); doc.rect(0,0,210,35,'F');
             doc.setTextColor(255); doc.setFontSize(18);
 
-            // Header Content (Removed Company Name)
             if(appData.settings.logo) {
                 try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){}
                 doc.text(title,40,22);
@@ -940,32 +840,21 @@
                 doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
             });
 
-            // Add Footer to all pages
+            // Footer (Page Numbers & Credits)
             const pageCount = doc.internal.getNumberOfPages();
             doc.setFont("helvetica", "italic");
             doc.setFontSize(8);
             doc.setTextColor(150);
-
             for(let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 const pageSize = doc.internal.pageSize;
                 const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
                 const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
-
-                // Company Name (Left)
-                if (appData.settings.companyName) {
-                    doc.text(appData.settings.companyName, 10, pageHeight - 10);
-                }
-
-                // Credits (Right)
+                if (appData.settings.companyName) doc.text(appData.settings.companyName, 10, pageHeight - 10);
                 const creditText = "Créé par Maxime Bousquet - Licence MIT";
-                const textWidth = doc.getTextWidth(creditText);
-                doc.text(creditText, pageWidth - 10 - textWidth, pageHeight - 10);
-
-                // Page Number (Center)
+                doc.text(creditText, pageWidth - 10 - doc.getTextWidth(creditText), pageHeight - 10);
                 const pageNum = `Page ${i} / ${pageCount}`;
-                const pageNumWidth = doc.getTextWidth(pageNum);
-                doc.text(pageNum, (pageWidth - pageNumWidth) / 2, pageHeight - 10);
+                doc.text(pageNum, (pageWidth - doc.getTextWidth(pageNum)) / 2, pageHeight - 10);
             }
 
             const fileName = singleId ? "Fiche_Chantier.pdf" : "Rapport_Complet.pdf";
@@ -974,6 +863,15 @@
         function exportJSON() {
             const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData));
             a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        // --- SERVICE WORKER REGISTRATION (OFFLINE MODE) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker enregistré', reg))
+                    .catch(err => console.log('Erreur Service Worker', err));
+            });
         }
 
         initApp();
