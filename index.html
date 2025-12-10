@@ -383,7 +383,7 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 25.0
+                Créé par Maxime Bousquet - Licence MIT<br>Version 26.0
             </div>
             <div style="height:100px"></div>
         </div>
@@ -861,6 +861,7 @@
             doc.setFillColor(colorHex); doc.rect(0,0,210,35,'F');
             doc.setTextColor(255); doc.setFontSize(18);
 
+            // Header Content (Removed Company Name)
             if(appData.settings.logo) {
                 try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){}
                 doc.text(title,40,22);
