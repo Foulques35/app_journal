@@ -383,7 +383,7 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 23.0
+                Créé par Maxime Bousquet - Licence MIT<br>Version 24.0
             </div>
             <div style="height:100px"></div>
         </div>
@@ -951,6 +951,35 @@
                 }
                 doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
             });
+
+            // Add Footer to all pages
+            const pageCount = doc.internal.getNumberOfPages();
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+
+            for(let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                const pageSize = doc.internal.pageSize;
+                const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+
+                // Company Name (Left)
+                if (appData.settings.companyName) {
+                    doc.text(appData.settings.companyName, 10, pageHeight - 10);
+                }
+
+                // Credits (Right)
+                const creditText = "Créé par Maxime Bousquet - Licence MIT";
+                const textWidth = doc.getTextWidth(creditText);
+                doc.text(creditText, pageWidth - 10 - textWidth, pageHeight - 10);
+
+                // Page Number (Center)
+                const pageNum = `Page ${i} / ${pageCount}`;
+                const pageNumWidth = doc.getTextWidth(pageNum);
+                doc.text(pageNum, (pageWidth - pageNumWidth) / 2, pageHeight - 10);
+            }
+
             const fileName = singleId ? "Fiche_Chantier.pdf" : "Rapport_Complet.pdf";
             doc.save(fileName);
         }
