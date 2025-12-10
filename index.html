@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Journal">
     <meta name="theme-color" content="#f2f2f7">
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
-    <title>Journal Chantier</title>
+    <title>Journal Chantier (DB)</title>
 
     <script src="jspdf.umd.min.js"></script>
 
     <style>
-        /* --- VOS STYLES (Identiques) --- */
+        /* --- STYLES IDENTIQUES --- */
         :root { --primary: #007AFF; --bg-app: #F2F2F7; --bg-card: #FFFFFF; --text-main: #000000; --text-sec: #8E8E93; --border: #C6C6C8; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-app); color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
         * { box-sizing: border-box; }
@@ -165,7 +166,7 @@
                     <input type="date" id="dateEnd" onchange="renderList()" placeholder="Au...">
                 </div>
             </div>
-            <div style="font-size:12px; color:#8E8E93; margin:0 0 8px 5px;"><span id="countDisplay">0</span> fiches</div>
+            <div style="font-size:12px; color:#8E8E93; margin:0 0 8px 5px;"><span id="countDisplay">0</span> fiches (DB)</div>
             <div id="entryList"></div>
             <div style="height: 60px;"></div>
         </div>
@@ -336,7 +337,7 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 26.0 (Offline)
+                Créé par Maxime Bousquet - Licence MIT<br>Version 28.0 (IndexedDB)
             </div>
             <div style="height:100px"></div>
         </div>
@@ -357,7 +358,97 @@
     </div>
 
     <script>
-        // --- NAVIGATION & INIT ---
+        // ==========================================
+        //  MOTEUR INDEXEDDB (Le Cœur du Système)
+        // ==========================================
+        const DB_NAME = 'JournalDB';
+        const STORE_NAME = 'AppState';
+
+        // Ouvre la base de données
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    e.target.result.createObjectStore(STORE_NAME);
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // Sauvegarde (Asynchrone)
+        async function saveData(data) {
+            try {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    store.put(data, 'main_data');
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch(e) { console.error("Erreur Sauvegarde DB", e); }
+        }
+
+        // Chargement (Asynchrone)
+        async function loadData() {
+            try {
+                const db = await openDB();
+                return new Promise(resolve => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const req = tx.objectStore(STORE_NAME).get('main_data');
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(null);
+                });
+            } catch(e) { return null; }
+        }
+
+        // ==========================================
+        //  INIT & MIGRATION
+        // ==========================================
+        const defaultSettings = {
+            sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
+            categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
+            pdfTitle: "Rapport de Chantier",
+            companyName: "",
+            pdfColor: "#007AFF",
+            logo: null
+        };
+        let appData = { settings: {...defaultSettings}, entries: [] };
+
+        async function initApp() {
+            // 1. Essayer de charger depuis DB
+            const dbData = await loadData();
+
+            if (dbData) {
+                appData = dbData;
+                appData.settings = {...defaultSettings, ...appData.settings};
+            } else {
+                // 2. MIGRATION : Si DB vide, vérifier LocalStorage (Ancienne version)
+                const lsRaw = localStorage.getItem('journal_v14');
+                if (lsRaw) {
+                    try {
+                        console.log("Migration depuis LocalStorage vers IndexedDB...");
+                        appData = JSON.parse(lsRaw);
+                        appData.settings = {...defaultSettings, ...appData.settings};
+                        await saveData(appData); // Sauver dans la DB
+                        // Optionnel : localStorage.removeItem('journal_v14'); // Nettoyer après migration
+                    } catch(e) { console.error("Erreur migration", e); }
+                }
+            }
+
+            // UI Init
+            updateDropdowns();
+            renderList();
+            document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
+            document.getElementById('companyNameInput').value = appData.settings.companyName || "";
+            document.getElementById('pdfColorInput').value = appData.settings.pdfColor || "#007AFF";
+            renderLogoPreview();
+            renderChips('siteList', appData.settings.sites, 'sites');
+            renderChips('catList', appData.settings.categories, 'categories');
+        }
+
+        // --- NAVIGATION ---
         function goHome() {
             document.getElementById('viewList').classList.remove('hidden-left');
             document.getElementById('viewList').classList.add('active');
@@ -384,52 +475,19 @@
             }
         });
 
-        // --- DATA & STORAGE ---
-        const defaultSettings = {
-            sites: ["Bâtiment A", "Bâtiment B", "Extérieur"],
-            categories: ["Général", "Électricité", "Plomberie", "Maçonnerie"],
-            pdfTitle: "Rapport de Chantier",
-            companyName: "",
-            pdfColor: "#007AFF",
-            logo: null
-        };
-        let appData = { settings: {...defaultSettings}, entries: [] };
-
-        let currentStatus = 'todo';
-        let currentWeather = null;
-        let currentUpdateWeather = null;
-        let editingUpdateId = null;
-
-        function initApp() {
-            const raw = localStorage.getItem('journal_v14');
-            if (raw) {
-                appData = JSON.parse(raw);
-                appData.settings = {...defaultSettings, ...appData.settings};
-            }
-            updateDropdowns(); renderList();
-
-            document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
-            document.getElementById('companyNameInput').value = appData.settings.companyName || "";
-            document.getElementById('pdfColorInput').value = appData.settings.pdfColor || "#007AFF";
-            renderLogoPreview();
-            renderChips('siteList', appData.settings.sites, 'sites');
-            renderChips('catList', appData.settings.categories, 'categories');
-        }
-
-        function saveToStorage() { localStorage.setItem('journal_v14', JSON.stringify(appData)); }
-
+        // --- IMPORT JSON ---
         function importJSON(input) {
             const file = input.files[0];
             if(!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
                     if(data && data.entries) {
                         if(confirm("Attention: Cela va remplacer les données actuelles. Continuer ?")) {
                             appData = data;
                             if(!appData.settings) appData.settings = {...defaultSettings};
-                            saveToStorage();
+                            await saveData(appData); // Async Save
                             initApp();
                             alert("Restauration réussie !");
                         }
@@ -441,6 +499,11 @@
         }
 
         // --- HELPERS ---
+        let currentStatus = 'todo';
+        let currentWeather = null;
+        let currentUpdateWeather = null;
+        let editingUpdateId = null;
+
         function setStatus(s) {
             currentStatus = s;
             document.querySelectorAll('#statusSelector .status-pill').forEach(el => el.classList.remove('active'));
@@ -570,7 +633,7 @@
             openForm();
         }
 
-        function saveEntry() {
+        async function saveEntry() {
             const site = document.getElementById('entrySite').value;
             if(!site) return alert("Choisissez un lieu");
             const entry = {
@@ -588,18 +651,22 @@
             };
             if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
             else { appData.entries.unshift(entry); curId = entry.id; }
-            saveToStorage(); goHome(); renderList();
+
+            await saveData(appData); // Async Save
+            goHome();
+            renderList();
         }
 
-        function deleteEntry() {
+        async function deleteEntry() {
             if(confirm("Supprimer ?")) {
                 appData.entries = appData.entries.filter(e => e.id !== curId);
-                saveToStorage(); goHome(); renderList();
+                await saveData(appData); // Async Save
+                goHome(); renderList();
             }
         }
 
         // --- IMAGES ---
-        function resizeImage(file, max=600) {
+        function resizeImage(file, max=800) {
             return new Promise(r => {
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -609,7 +676,8 @@
                         let w=img.width, h=img.height;
                         if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
                         c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
-                        r(c.toDataURL('image/jpeg', 0.4));
+                        // Qualité 0.5 (Bon compromis)
+                        r(c.toDataURL('image/jpeg', 0.5));
                     }
                     img.src = e.target.result;
                 }
@@ -653,7 +721,7 @@
             document.getElementById('btnSaveUpdate').innerHTML = '<svg class="icon" style="fill:none;stroke:currentColor;stroke-width:3"><use href="#icon-check"/></svg>';
             document.getElementById('updateText').focus();
         }
-        function saveUpdate() {
+        async function saveUpdate() {
             if(!curId) return;
             const txt = document.getElementById('updateText').value;
             const date = document.getElementById('updateDate').value;
@@ -670,7 +738,10 @@
                 const idx = e.updates.findIndex(u => u.id === editingUpdateId);
                 if(idx >= 0) e.updates[idx] = updateObj;
             } else { e.updates.unshift(updateObj); }
-            saveToStorage(); resetUpdateForm(); renderTimeline(e.updates);
+
+            await saveData(appData); // Async Save
+            resetUpdateForm();
+            renderTimeline(e.updates);
         }
         function renderTimeline(updates) {
             const container = document.getElementById('timelineList');
@@ -695,12 +766,13 @@
                 </div>`;
             }).join('');
         }
-        function delUp(uid) {
+        async function delUp(uid) {
             if(!confirm("Supprimer ?")) return;
             const e = appData.entries.find(x => x.id === curId);
             e.updates = e.updates.filter(u => u.id !== uid);
             if(editingUpdateId === uid) resetUpdateForm();
-            saveToStorage(); renderTimeline(e.updates);
+            await saveData(appData); // Async Save
+            renderTimeline(e.updates);
         }
 
         // --- UTILS ---
@@ -721,41 +793,41 @@
                 </div>
             `).join('');
         }
-        function addSetting(type) {
+        async function addSetting(type) {
             const val = document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value.trim();
             if(val && !appData.settings[type].includes(val)) {
                 appData.settings[type].push(val);
                 document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value = '';
-                saveToStorage(); renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
+                await saveData(appData); // Async Save
+                renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
             }
         }
-        function rmSet(type, i) {
+        async function rmSet(type, i) {
             if(confirm("Supprimer ?")) {
                 appData.settings[type].splice(i,1);
-                saveToStorage(); renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
+                await saveData(appData); // Async Save
+                renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
             }
         }
-        function savePdfSettings() {
+        async function savePdfSettings() {
             appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value;
             appData.settings.pdfColor = document.getElementById('pdfColorInput').value;
             appData.settings.companyName = document.getElementById('companyNameInput').value;
-            saveToStorage();
+            await saveData(appData); // Async Save
         }
-        async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); saveToStorage(); renderLogoPreview(); } }
-        function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; saveToStorage(); renderLogoPreview(); } }
+        async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); await saveData(appData); renderLogoPreview(); } }
+        async function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; await saveData(appData); renderLogoPreview(); } }
         function renderLogoPreview() {
             const lp = document.getElementById('logoPreview');
             lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:cover">` : ``;
         }
 
-        // --- EXPORT PDF ---
+        // --- EXPORT PDF (IDENTIQUE) ---
         function getStatusLabel(s) { return { 'todo': 'À faire', 'doing': 'En cours', 'blocked': 'Bloqué', 'done': 'Terminé' }[s] || s || 'N/A'; }
         function getWeatherLabel(w) { return { 'sun': 'Soleil', 'cloud': 'Nuageux', 'rain': 'Pluie', 'snow': 'Neige' }[w] || ''; }
 
         async function exportPDF(singleId = null) {
-            // Utilisation directe de la version locale
             const { jsPDF } = window.jspdf;
-
             const doc = new jsPDF();
             const title = appData.settings.pdfTitle || "Rapport";
             const colorHex = appData.settings.pdfColor || "#007AFF";
@@ -840,7 +912,6 @@
                 doc.setDrawColor(200); doc.line(10,y,200,y); y+=10;
             });
 
-            // Footer (Page Numbers & Credits)
             const pageCount = doc.internal.getNumberOfPages();
             doc.setFont("helvetica", "italic");
             doc.setFontSize(8);
@@ -865,7 +936,7 @@
             a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove();
         }
 
-        // --- SERVICE WORKER REGISTRATION (OFFLINE MODE) ---
+        // --- SERVICE WORKER (OFFLINE) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
