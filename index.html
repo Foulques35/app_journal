@@ -135,7 +135,7 @@
         .menu-item:last-child { border-bottom: none; }
         @keyframes popIn { from { opacity:0; transform: scale(0.9); } to { opacity:1; transform: scale(1); } }
 
-        /* Tab Bar */
+        /* Tab Bar (Compact) */
         .tab-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: calc(50px + var(--safe-bottom)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 6px; z-index: 100; }
         .tab-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); text-decoration: none; font-size: 9px; font-weight: 500; background: none; border: none; cursor: pointer; width: 60px; -webkit-tap-highlight-color: transparent; }
         .tab-item.active { color: var(--primary); }
@@ -383,7 +383,7 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 24.0
+                Créé par Maxime Bousquet - Licence MIT<br>Version 25.0
             </div>
             <div style="height:100px"></div>
         </div>
@@ -861,24 +861,11 @@
             doc.setFillColor(colorHex); doc.rect(0,0,210,35,'F');
             doc.setTextColor(255); doc.setFontSize(18);
 
-            // Header Content
             if(appData.settings.logo) {
                 try{ doc.addImage(appData.settings.logo,'JPEG',10,5,25,25); }catch(e){}
                 doc.text(title,40,22);
-                // Company Name logic with logo
-                if(appData.settings.companyName) {
-                    doc.setFontSize(10);
-                    doc.text(appData.settings.companyName, 40, 14);
-                    doc.setFontSize(18); // Reset
-                }
             } else {
                 doc.text(title,10,22);
-                // Company Name logic without logo
-                if(appData.settings.companyName) {
-                    doc.setFontSize(10);
-                    doc.text(appData.settings.companyName, 10, 14);
-                    doc.setFontSize(18); // Reset
-                }
             }
 
             let y=45;
