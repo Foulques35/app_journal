@@ -10,12 +10,12 @@
     <meta name="theme-color" content="#f2f2f7">
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
-    <title>Journal Chantier (DB)</title>
+    <title>Journal Chantier (Options)</title>
 
     <script src="jspdf.umd.min.js"></script>
 
     <style>
-        /* --- STYLES IDENTIQUES --- */
+        /* --- STYLES (Identiques) --- */
         :root { --primary: #007AFF; --bg-app: #F2F2F7; --bg-card: #FFFFFF; --text-main: #000000; --text-sec: #8E8E93; --border: #C6C6C8; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-app); color: var(--text-main); height: 100dvh; width: 100vw; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
         * { box-sizing: border-box; }
@@ -127,7 +127,7 @@
     <div id="viewList" class="view active">
         <div class="nav-bar">
             <div style="width:32px"></div>
-            <div class="nav-title">Journal</div>
+            <div class="nav-title">Journal (Collab)</div>
             <button class="nav-btn action-primary" onclick="toggleExportMenu()">
                 <svg class="icon-lg" style="fill:none;stroke:currentColor;stroke-width:2"><use href="#icon-share"/></svg>
             </button>
@@ -140,7 +140,7 @@
                 <svg class="icon" style="color:#34C759;fill:none;margin-right:8px"><use href="#icon-save"/></svg> Sauvegarde JSON
             </button>
             <label class="menu-item" style="cursor:pointer; color:var(--primary)">
-                <svg class="icon" style="fill:none;margin-right:8px"><use href="#icon-upload"/></svg> Restaurer Sauvegarde
+                <svg class="icon" style="fill:none;margin-right:8px"><use href="#icon-upload"/></svg> Fusionner / Importer
                 <input type="file" accept=".json" style="display:none" onchange="importJSON(this)">
             </label>
         </div>
@@ -337,7 +337,7 @@
                 </div>
             </div>
             <div style="text-align:center; font-size:11px; color:var(--text-sec); margin-top:20px; line-height:1.5;">
-                Créé par Maxime Bousquet - Licence MIT<br>Version 28.0 (IndexedDB)
+                Créé par Maxime Bousquet - Licence MIT<br>Version 3.1 (Collab + Options)
             </div>
             <div style="height:100px"></div>
         </div>
@@ -359,38 +359,30 @@
 
     <script>
         // ==========================================
-        //  MOTEUR INDEXEDDB (Le Cœur du Système)
+        //  MOTEUR INDEXEDDB
         // ==========================================
         const DB_NAME = 'JournalDB';
         const STORE_NAME = 'AppState';
 
-        // Ouvre la base de données
         function openDB() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NAME, 1);
-                req.onupgradeneeded = (e) => {
-                    e.target.result.createObjectStore(STORE_NAME);
-                };
+                req.onupgradeneeded = (e) => { e.target.result.createObjectStore(STORE_NAME); };
                 req.onsuccess = () => resolve(req.result);
                 req.onerror = () => reject(req.error);
             });
         }
-
-        // Sauvegarde (Asynchrone)
         async function saveData(data) {
             try {
                 const db = await openDB();
                 return new Promise((resolve, reject) => {
                     const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    store.put(data, 'main_data');
+                    tx.objectStore(STORE_NAME).put(data, 'main_data');
                     tx.oncomplete = () => resolve();
                     tx.onerror = () => reject(tx.error);
                 });
             } catch(e) { console.error("Erreur Sauvegarde DB", e); }
         }
-
-        // Chargement (Asynchrone)
         async function loadData() {
             try {
                 const db = await openDB();
@@ -417,35 +409,90 @@
         let appData = { settings: {...defaultSettings}, entries: [] };
 
         async function initApp() {
-            // 1. Essayer de charger depuis DB
             const dbData = await loadData();
-
             if (dbData) {
                 appData = dbData;
                 appData.settings = {...defaultSettings, ...appData.settings};
             } else {
-                // 2. MIGRATION : Si DB vide, vérifier LocalStorage (Ancienne version)
+                // Migration depuis LocalStorage
                 const lsRaw = localStorage.getItem('journal_v14');
                 if (lsRaw) {
                     try {
                         console.log("Migration depuis LocalStorage vers IndexedDB...");
                         appData = JSON.parse(lsRaw);
                         appData.settings = {...defaultSettings, ...appData.settings};
-                        await saveData(appData); // Sauver dans la DB
-                        // Optionnel : localStorage.removeItem('journal_v14'); // Nettoyer après migration
+                        await saveData(appData);
                     } catch(e) { console.error("Erreur migration", e); }
                 }
             }
-
             // UI Init
-            updateDropdowns();
-            renderList();
+            updateDropdowns(); renderList();
             document.getElementById('pdfTitleInput').value = appData.settings.pdfTitle;
             document.getElementById('companyNameInput').value = appData.settings.companyName || "";
             document.getElementById('pdfColorInput').value = appData.settings.pdfColor || "#007AFF";
             renderLogoPreview();
             renderChips('siteList', appData.settings.sites, 'sites');
             renderChips('catList', appData.settings.categories, 'categories');
+        }
+
+        // ==========================================
+        //  IMPORT & FUSION INTELLIGENTE
+        // ==========================================
+        async function importJSON(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const incomingData = JSON.parse(e.target.result);
+                    if(incomingData && incomingData.entries) {
+
+                        // 1. FUSION DES REGLAGES (Lieux & Rubriques)
+                        const combinedSites = new Set([...appData.settings.sites, ...(incomingData.settings.sites || [])]);
+                        appData.settings.sites = Array.from(combinedSites);
+
+                        const combinedCats = new Set([...appData.settings.categories, ...(incomingData.settings.categories || [])]);
+                        appData.settings.categories = Array.from(combinedCats);
+
+                        // 2. FUSION DES REGLAGES PDF (TITRE, COULEUR, LOGO)
+                        if (incomingData.settings) {
+                            if (incomingData.settings.pdfTitle) appData.settings.pdfTitle = incomingData.settings.pdfTitle;
+                            if (incomingData.settings.companyName) appData.settings.companyName = incomingData.settings.companyName;
+                            if (incomingData.settings.pdfColor) appData.settings.pdfColor = incomingData.settings.pdfColor;
+                            // Pour le logo, on ne l'écrase que s'il y en a un dans le fichier importé
+                            if (incomingData.settings.logo) appData.settings.logo = incomingData.settings.logo;
+                        }
+
+                        // 3. FUSION DES FICHES
+                        let addedCount = 0;
+                        let updatedCount = 0;
+
+                        incomingData.entries.forEach(incomingEntry => {
+                            const existingIndex = appData.entries.findIndex(entry => entry.id === incomingEntry.id);
+
+                            if (existingIndex >= 0) {
+                                // La fiche existe déjà : on met à jour
+                                appData.entries[existingIndex] = incomingEntry;
+                                updatedCount++;
+                            } else {
+                                // La fiche n'existe pas : on ajoute
+                                appData.entries.push(incomingEntry);
+                                addedCount++;
+                            }
+                        });
+
+                        await saveData(appData);
+                        initApp(); // Rafraichir l'interface
+                        alert(`Fusion terminée !\n\nOptions PDF mises à jour.\n+ ${addedCount} nouvelles fiches\n~ ${updatedCount} fiches mises à jour`);
+
+                    } else { alert("Fichier invalide ou corrompu."); }
+                } catch(err) {
+                    console.error(err);
+                    alert("Erreur lors de la fusion des données.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset input
         }
 
         // --- NAVIGATION ---
@@ -474,29 +521,6 @@
                 menu.classList.remove('show');
             }
         });
-
-        // --- IMPORT JSON ---
-        function importJSON(input) {
-            const file = input.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if(data && data.entries) {
-                        if(confirm("Attention: Cela va remplacer les données actuelles. Continuer ?")) {
-                            appData = data;
-                            if(!appData.settings) appData.settings = {...defaultSettings};
-                            await saveData(appData); // Async Save
-                            initApp();
-                            alert("Restauration réussie !");
-                        }
-                    } else { alert("Fichier invalide"); }
-                } catch(err) { alert("Erreur de lecture du fichier"); }
-            };
-            reader.readAsText(file);
-            input.value = '';
-        }
 
         // --- HELPERS ---
         let currentStatus = 'todo';
@@ -652,7 +676,7 @@
             if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
             else { appData.entries.unshift(entry); curId = entry.id; }
 
-            await saveData(appData); // Async Save
+            await saveData(appData);
             goHome();
             renderList();
         }
@@ -660,7 +684,7 @@
         async function deleteEntry() {
             if(confirm("Supprimer ?")) {
                 appData.entries = appData.entries.filter(e => e.id !== curId);
-                await saveData(appData); // Async Save
+                await saveData(appData);
                 goHome(); renderList();
             }
         }
@@ -676,7 +700,6 @@
                         let w=img.width, h=img.height;
                         if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
                         c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
-                        // Qualité 0.5 (Bon compromis)
                         r(c.toDataURL('image/jpeg', 0.5));
                     }
                     img.src = e.target.result;
@@ -739,7 +762,7 @@
                 if(idx >= 0) e.updates[idx] = updateObj;
             } else { e.updates.unshift(updateObj); }
 
-            await saveData(appData); // Async Save
+            await saveData(appData);
             resetUpdateForm();
             renderTimeline(e.updates);
         }
@@ -771,7 +794,7 @@
             const e = appData.entries.find(x => x.id === curId);
             e.updates = e.updates.filter(u => u.id !== uid);
             if(editingUpdateId === uid) resetUpdateForm();
-            await saveData(appData); // Async Save
+            await saveData(appData);
             renderTimeline(e.updates);
         }
 
@@ -798,14 +821,14 @@
             if(val && !appData.settings[type].includes(val)) {
                 appData.settings[type].push(val);
                 document.getElementById(type === 'sites' ? 'newSiteInput' : 'newCatInput').value = '';
-                await saveData(appData); // Async Save
+                await saveData(appData);
                 renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
             }
         }
         async function rmSet(type, i) {
             if(confirm("Supprimer ?")) {
                 appData.settings[type].splice(i,1);
-                await saveData(appData); // Async Save
+                await saveData(appData);
                 renderChips(type==='sites'?'siteList':'catList', appData.settings[type], type); updateDropdowns();
             }
         }
@@ -813,7 +836,7 @@
             appData.settings.pdfTitle = document.getElementById('pdfTitleInput').value;
             appData.settings.pdfColor = document.getElementById('pdfColorInput').value;
             appData.settings.companyName = document.getElementById('companyNameInput').value;
-            await saveData(appData); // Async Save
+            await saveData(appData);
         }
         async function handleLogoUpload(input) { if(input.files[0]) { appData.settings.logo = await resizeImage(input.files[0], 300); await saveData(appData); renderLogoPreview(); } }
         async function removeLogo() { if(confirm("Supprimer logo ?")) { appData.settings.logo = null; await saveData(appData); renderLogoPreview(); } }
@@ -822,7 +845,7 @@
             lp.innerHTML = appData.settings.logo ? `<img src="${appData.settings.logo}" style="width:100%;height:100%;object-fit:cover">` : ``;
         }
 
-        // --- EXPORT PDF (IDENTIQUE) ---
+        // --- EXPORT PDF & JSON ---
         function getStatusLabel(s) { return { 'todo': 'À faire', 'doing': 'En cours', 'blocked': 'Bloqué', 'done': 'Terminé' }[s] || s || 'N/A'; }
         function getWeatherLabel(w) { return { 'sun': 'Soleil', 'cloud': 'Nuageux', 'rain': 'Pluie', 'snow': 'Neige' }[w] || ''; }
 
@@ -843,7 +866,6 @@
 
             let y=45;
             let dataToExport = [];
-
             if(singleId) {
                 dataToExport = appData.entries.filter(e => e.id === singleId);
             } else {
@@ -852,7 +874,6 @@
                 const status = document.getElementById('filterStatus').value;
                 const dStart = document.getElementById('dateStart').value;
                 const dEnd = document.getElementById('dateEnd').value;
-
                 dataToExport = appData.entries.filter(e => {
                     const matchesText = (e.site.toLowerCase().includes(search) || e.description.toLowerCase().includes(search));
                     const matchesCat = (cat === 'All' || e.category === cat);
@@ -936,7 +957,6 @@
             a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove();
         }
 
-        // --- SERVICE WORKER (OFFLINE) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
