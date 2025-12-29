@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Journal">
@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAnUExURQAAACVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj6yVj65/L52UAAAAMdFJOUwAQHz9Azt9vj+D/y0wtOvwAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVHhe7cExAQAAAMKg9U9tCy8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIB3A8VHAAEdjagAAAAASUVORK5CYII=">
 
     <title>Journal Chantier (Options)</title>
-
+    
     <script src="jspdf.umd.min.js"></script>
 
     <style>
@@ -446,11 +446,11 @@
                 try {
                     const incomingData = JSON.parse(e.target.result);
                     if(incomingData && incomingData.entries) {
-
+                        
                         // 1. FUSION DES REGLAGES (Lieux & Rubriques)
                         const combinedSites = new Set([...appData.settings.sites, ...(incomingData.settings.sites || [])]);
                         appData.settings.sites = Array.from(combinedSites);
-
+                        
                         const combinedCats = new Set([...appData.settings.categories, ...(incomingData.settings.categories || [])]);
                         appData.settings.categories = Array.from(combinedCats);
 
@@ -469,7 +469,7 @@
 
                         incomingData.entries.forEach(incomingEntry => {
                             const existingIndex = appData.entries.findIndex(entry => entry.id === incomingEntry.id);
-
+                            
                             if (existingIndex >= 0) {
                                 // La fiche existe déjà : on met à jour
                                 appData.entries[existingIndex] = incomingEntry;
@@ -484,11 +484,11 @@
                         await saveData(appData);
                         initApp(); // Rafraichir l'interface
                         alert(`Fusion terminée !\n\nOptions PDF mises à jour.\n+ ${addedCount} nouvelles fiches\n~ ${updatedCount} fiches mises à jour`);
-
+                        
                     } else { alert("Fichier invalide ou corrompu."); }
-                } catch(err) {
+                } catch(err) { 
                     console.error(err);
-                    alert("Erreur lors de la fusion des données.");
+                    alert("Erreur lors de la fusion des données."); 
                 }
             };
             reader.readAsText(file);
@@ -513,7 +513,7 @@
         function openSettings() { document.getElementById('viewSettings').classList.add('active'); }
         function closeSettings() { document.getElementById('viewSettings').classList.remove('active'); }
         function toggleExportMenu() { document.getElementById('exportMenu').classList.toggle('show'); }
-
+        
         document.addEventListener('click', function(event) {
             const menu = document.getElementById('exportMenu');
             const btn = document.querySelector('.nav-btn.action-primary');
@@ -675,9 +675,9 @@
             };
             if(curId) { const i = appData.entries.findIndex(e=>e.id===curId); appData.entries[i] = entry; }
             else { appData.entries.unshift(entry); curId = entry.id; }
-
+            
             await saveData(appData);
-            goHome();
+            goHome(); 
             renderList();
         }
 
@@ -761,9 +761,9 @@
                 const idx = e.updates.findIndex(u => u.id === editingUpdateId);
                 if(idx >= 0) e.updates[idx] = updateObj;
             } else { e.updates.unshift(updateObj); }
-
+            
             await saveData(appData);
-            resetUpdateForm();
+            resetUpdateForm(); 
             renderTimeline(e.updates);
         }
         function renderTimeline(updates) {
